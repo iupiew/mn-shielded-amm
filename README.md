@@ -73,9 +73,8 @@ mn-amm/
 ├── ui/
 │   ├── bridge.ts               # vite dev middleware exposing api/ over /api/*
 │   └── src/                    # React dashboard (App.tsx, lib/api.ts typed client)
-├── scripts/
-│   └── owner-args.mjs          # prints deploy --args (ownerId + instanceSalt)
-└── .spike/                     # dev scratch harnesses (smoke tests, derivations)
+└── scripts/
+    └── owner-args.mjs          # prints deploy --args (ownerId + instanceSalt)
 ```
 
 **Template legacy** (present but not part of the AMM): `leaderboard.compact`,
