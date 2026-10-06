@@ -1,0 +1,19 @@
+{
+  "name": "mn-amm-cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Thin CLI over the AMM api/ (all logic lives in the api workspace)",
+  "bin": {
+    "mn-amm": "src/cli.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@midnight-ntwrk/leaderboard-api": "*"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.1"
+  }
+}

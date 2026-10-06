@@ -14,7 +14,14 @@
   },
   "scripts": {
     "compact": "compact compile leaderboard.compact managed/leaderboard",
+    "compile:pool": "compact compile pool.compact managed/pool",
     "build": "rm -rf dist && tsc --project tsconfig.build.json && cp -Rf ./managed ./dist/managed",
     "test": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "4.1.11"
+  },
+  "dependencies": {
+    "@openzeppelin/compact-contracts": "0.3.0-rc.1"
   }
 }

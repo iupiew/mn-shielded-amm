@@ -1,0 +1,26 @@
+{
+  "name": "mn-amm-ui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "React dashboard for the Midnight shielded AMM — thin client over the api/ workspace via a local bridge (vite dev middleware)",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@midnight-ntwrk/leaderboard-api": "*",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.1",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^5.1.4",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1"
+  }
+}

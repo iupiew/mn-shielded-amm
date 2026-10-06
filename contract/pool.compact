@@ -1,0 +1,145 @@
+/**
+ * Shielded constant-product AMM pool for Midnight Network.
+ *
+ * - Two self-minted test tokens (faucet), colors derived in-circuit.
+ * - One UTXO per token color ("pot"); a token's reserve IS its pot's value.
+ * - 0.3% swap fee (997/1000) stays in the pool (k never decreases).
+ * - Division-free swap math: caller supplies amountOut, circuit proves it
+ *   equals floor(v*997*rOut / (rIn*1000 + v*997)) via quotient range check.
+ *
+ * UNVERIFIED markers flag constructs confirmed only via Kapa docs / OZ 0.3.0-rc.1
+ * sources; validated by compile (0.31.1) at M2 and by devnet tests at M3+.
+ */
+pragma language_version 0.23;
+
+import CompactStandardLibrary;
+import "../node_modules/@openzeppelin/compact-contracts/access/ZOwnablePK" prefix ZOwn_;
+import "../node_modules/@openzeppelin/compact-contracts/security/Pausable" prefix Pausable_;
+
+export ledger _coins: Map<Bytes<32>, QualifiedShieldedCoinInfo>;
+
+// UNVERIFIED: constructor may call imported module circuits
+// (verified pattern: ShieldedMultiSig preset calls Signer_initialize in constructor).
+constructor(ownerId: Bytes<32>, instanceSalt: Bytes<32>) {
+  ZOwn_initialize(ownerId, instanceSalt);
+}
+
+circuit tokenColorA(): Bytes<32> {
+  return tokenType(pad(32, "mn-amm:tokenA"), kernel.self());
+}
+
+circuit tokenColorB(): Bytes<32> {
+  return tokenType(pad(32, "mn-amm:tokenB"), kernel.self());
+}
+
+circuit reserveOf(color: Bytes<32>): Uint<128> {
+  if (_coins.member(color)) {
+    return _coins.lookup(color).value;
+  } else {
+    return 0;
+  }
+}
+
+// OPEN FAUCET: devnet-only demo mint; gate with ZOwn_assertOnlyOwner (or
+// remove) before any public deployment.
+export circuit faucet(amountA: Uint<64>, amountB: Uint<64>, nonceA: Bytes<32>, nonceB: Bytes<32>): [ShieldedCoinInfo, ShieldedCoinInfo] {
+  assert(amountA > 0, "faucet: amountA is zero");
+  assert(amountB > 0, "faucet: amountB is zero");
+  const coinA = mintShieldedToken(pad(32, "mn-amm:tokenA"), disclose(amountA), disclose(nonceA), right<ZswapCoinPublicKey, ContractAddress>(kernel.self()));
+  const sentA = sendImmediateShielded(coinA, left<ZswapCoinPublicKey, ContractAddress>(ownPublicKey()), coinA.value);
+  const coinB = mintShieldedToken(pad(32, "mn-amm:tokenB"), disclose(amountB), disclose(nonceB), right<ZswapCoinPublicKey, ContractAddress>(kernel.self()));
+  const sentB = sendImmediateShielded(coinB, left<ZswapCoinPublicKey, ContractAddress>(ownPublicKey()), coinB.value);
+  // Return the user-owned SENT coins (fresh nonces, unspent commitments), not
+  // the minted coins which sendImmediateShielded already consumed.
+  return [sentA.sent, sentB.sent];
+}
+
+// SEED: devnet-only initial liquidity — creates both pots without LP
+// accounting (no share tokens). Replaced by addLiquidity before real use.
+export circuit seed(coinA: ShieldedCoinInfo, coinB: ShieldedCoinInfo): [] {
+  Pausable_assertNotPaused();
+  const colorA = disclose(tokenColorA());
+  const colorB = disclose(tokenColorB());
+  const cA = disclose(coinA.color);
+  const cB = disclose(coinB.color);
+  assert(cA == colorA, "AMM: coinA is not tokenA");
+  assert(cB == colorB, "AMM: coinB is not tokenB");
+  assert(!_coins.member(cA), "AMM: pool already seeded");
+  assert(!_coins.member(cB), "AMM: pool already seeded");
+  assert(coinA.value > 0 && coinB.value > 0, "AMM: zero seed");
+  receiveShielded(disclose(coinA));
+  _coins.insertCoin(cA, disclose(coinA), right<ZswapCoinPublicKey, ContractAddress>(kernel.self()));
+  receiveShielded(disclose(coinB));
+  _coins.insertCoin(cB, disclose(coinB), right<ZswapCoinPublicKey, ContractAddress>(kernel.self()));
+}
+
+// UNVERIFIED: caller-supplied nonces must be unique per mint (enforced off-chain
+// in api/); the ledger rejects duplicate coin ids from nonce reuse.
+export circuit swap(inCoin: ShieldedCoinInfo, amountOut: Uint<64>, minAmountOut: Uint<64>): [] {
+  Pausable_assertNotPaused();
+
+  const colorIn = disclose(inCoin.color);
+  const colorA = disclose(tokenColorA());
+  const colorB = disclose(tokenColorB());
+  assert(colorIn == colorA || colorIn == colorB, "AMM: unknown token color");
+  const colorOut = (colorIn == colorA) ? colorB : colorA;
+
+  assert(_coins.member(colorIn), "AMM: input reserve missing");
+  assert(_coins.member(colorOut), "AMM: output reserve missing");
+  const potIn = _coins.lookup(colorIn);
+  const potOut = _coins.lookup(colorOut);
+
+  // All values bounded to 2^64 so every product stays < ~2^138 (no wrap).
+  assert(inCoin.value < 18446744073709551616, "AMM: input too large");
+  assert(potIn.value < 18446744073709551616, "AMM: reserve in too large");
+  assert(potOut.value < 18446744073709551616, "AMM: reserve out too large");
+  const v = inCoin.value as Uint<64>;
+  const rIn = potIn.value as Uint<64>;
+  const rOut = potOut.value as Uint<64>;
+
+  assert(amountOut <= rOut, "AMM: insufficient reserve");
+
+  // Quotient range check: out <= numer/denom < out+1  <=>  floor == amountOut.
+  const numer = v * 997 * rOut;
+  const denom = rIn * 1000 + v * 997;
+  assert(amountOut * denom <= numer, "AMM: output too high");
+  assert(numer < (amountOut + 1) * denom, "AMM: output too low");
+  assert(amountOut >= minAmountOut, "AMM: below minAmountOut");
+
+  // k-invariant: fee remains in the pool, so k must not decrease.
+  assert((rIn + v) * (rOut - amountOut) >= rIn * rOut, "AMM: k invariant");
+
+  receiveShielded(disclose(inCoin));
+  const merged = mergeCoinImmediate(potIn, disclose(inCoin));
+  _coins.insertCoin(colorIn, merged, right<ZswapCoinPublicKey, ContractAddress>(kernel.self()));
+
+  const sendVal = amountOut as Uint<128>;
+  const result = sendShielded(potOut, left<ZswapCoinPublicKey, ContractAddress>(ownPublicKey()), disclose(sendVal));
+  if (disclose(result.change.is_some)) {
+    _coins.insertCoin(colorOut, result.change.value, right<ZswapCoinPublicKey, ContractAddress>(kernel.self()));
+  } else {
+    _coins.remove(colorOut);
+  }
+}
+
+export circuit pause(): [] {
+  ZOwn_assertOnlyOwner();
+  Pausable__pause();
+}
+
+export circuit unpause(): [] {
+  ZOwn_assertOnlyOwner();
+  Pausable__unpause();
+}
+
+export circuit getColors(): [Bytes<32>, Bytes<32>] {
+  return [tokenColorA(), tokenColorB()];
+}
+
+export circuit getReserves(): [Uint<128>, Uint<128>] {
+  return [reserveOf(disclose(tokenColorA())), reserveOf(disclose(tokenColorB()))];
+}
+
+export circuit getIsPaused(): Boolean {
+  return Pausable_isPaused();
+}

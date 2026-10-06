@@ -24,4 +24,13 @@ export const createWitnesses = () => ({
   }: {
     privateState: LeaderboardPrivateState;
   }): [LeaderboardPrivateState, Uint8Array] => [privateState, _customName],
+  wit_secretNonce: ({
+    privateState,
+  }: {
+    privateState: LeaderboardPrivateState;
+  }): [LeaderboardPrivateState, Uint8Array] => [privateState, privateState.secretKey],
 });
+
+// Direct named export for tooling that loads witnesses generically
+// (e.g. `midnight contract deploy` looks for a `witnesses` export).
+export const witnesses = createWitnesses();

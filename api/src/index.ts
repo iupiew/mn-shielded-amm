@@ -17,7 +17,7 @@ import {
   type DeployedLeaderboardContract,
   leaderboardPrivateStateKey,
 } from './common-types.js';
-import { CompiledLeaderboardContract, createLeaderboardPrivateState, type LeaderboardPrivateState } from '../../contract/src/index';
+import { CompiledLeaderboardContract, createLeaderboardPrivateState, type LeaderboardPrivateState } from '../../contract/src/index.js';
 import { setCustomName } from '../../contract/src/witnesses.js';
 import * as utils from './utils/index.js';
 import { deployContract, findDeployedContract } from '@midnight-ntwrk/midnight-js-contracts';
@@ -102,3 +102,4 @@ export class LeaderboardAPI {
 
 export * as utils from './utils/index.js';
 export * from './common-types.js';
+export * from './amm/index.js';

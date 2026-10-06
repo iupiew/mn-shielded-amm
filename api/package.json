@@ -3,11 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "module": "./dist/index.js",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "module": "./dist/api/src/index.js",
+  "main": "./dist/api/src/index.js",
+  "types": "./dist/api/src/index.d.ts",
   "scripts": {
-    "build": "rm -rf dist && tsc --project tsconfig.build.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "build": "rm -rf dist && tsc --project tsconfig.build.json && node -e \"require('node:fs').cpSync('../contract/managed','dist/contract/managed',{recursive:true})\"",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.1",
+    "vitest": "4.1.11"
   }
 }
