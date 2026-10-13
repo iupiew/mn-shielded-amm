@@ -72,6 +72,8 @@ Options:
   --amount-a <n> --amount-b <n>  faucet mint amounts in atomic units (default: 1000000)
   --no-sync                      (localnet) read wallet coin cache without refreshing it
   --salt <64-hex>                pools deploy: instance salt (default: fresh random)
+  --faucet-open                  pools deploy: open the faucet on the new pool
+                                 (default: closed)
   --execute                      actually submit (mutating commands are dry-run by default)
   --json                         machine-readable output
   -h, --help                     show this help
@@ -295,11 +297,12 @@ async function main(): Promise<number> {
         }
         case 'deploy': {
           const name = positional[2];
-          if (!name) throw new UsageError('usage: pools deploy <name> [--network-id preprod] [--salt <64-hex>] [--execute]');
+          if (!name) throw new UsageError('usage: pools deploy <name> [--network-id preprod] [--salt <64-hex>] [--faucet-open] [--execute]');
           const { randomBytes, createHash } = await import('node:crypto');
           const { writeFileSync, readFileSync } = await import('node:fs');
           const saltRaw = (flagStr(flags, 'salt') ?? randomBytes(32).toString('hex')).toLowerCase();
           if (!/^[0-9a-f]{64}$/.test(saltRaw)) throw new UsageError('--salt must be 64 hex chars');
+          const faucetOpen = flags.has('faucet-open');
 
           if (isPreprod) {
             const { fileURLToPath } = await import('node:url');
@@ -323,10 +326,10 @@ async function main(): Promise<number> {
             const ownerIdHex = createHash('sha256').update(pk).update(pk).digest('hex');
             const deployScript = fileURLToPath(new URL('../../scripts/preprod-deploy.mjs', import.meta.url));
             if (!flags.has('execute')) {
-              emit(json, { command: 'pools deploy', name, networkId: 'preprod', ownerId: ownerIdHex, salt: saltRaw, dryRun: true, deployScript });
+              emit(json, { command: 'pools deploy', name, networkId: 'preprod', ownerId: ownerIdHex, salt: saltRaw, faucetOpen, dryRun: true, deployScript });
               return 0;
             }
-            writeFileSync(resolvePath('.spike/preprod-deploy-args.json'), `${JSON.stringify([ownerIdHex, saltRaw], null, 2)}\n`);
+            writeFileSync(resolvePath('.spike/preprod-deploy-args.json'), `${JSON.stringify([ownerIdHex, saltRaw, faucetOpen], null, 2)}\n`);
             const { spawn } = await import('node:child_process');
             const exitCode: number = await new Promise((resolvePromise, rejectPromise) => {
               const child = spawn(process.execPath, [deployScript, '--execute'], { stdio: 'inherit' });
@@ -338,7 +341,7 @@ async function main(): Promise<number> {
             const address = String(deployed.contractAddress ?? '');
             if (!/^[0-9a-f]{64}$/.test(address)) throw new Error('deploy script returned an invalid contractAddress');
             const entry = registry.addPool(name, address, { networkId: 'preprod' });
-            emit(json, { command: 'pools deploy', name, ...entry, ownerId: ownerIdHex, salt: saltRaw });
+            emit(json, { command: 'pools deploy', name, ...entry, ownerId: ownerIdHex, salt: saltRaw, faucetOpen });
             return 0;
           }
 
@@ -372,16 +375,18 @@ async function main(): Promise<number> {
           const saltBytes = [...Buffer.from(saltRaw, 'hex')];
           const wallet = flagStr(flags, 'wallet') ?? 'devnet-main';
           if (!flags.has('execute')) {
-            emit(json, { command: 'pools deploy', name, networkId: 'undeployed', ownerCoinPublicKey: pkHex, salt: saltRaw, wallet, dryRun: true });
+            emit(json, { command: 'pools deploy', name, networkId: 'undeployed', ownerCoinPublicKey: pkHex, salt: saltRaw, faucetOpen, wallet, dryRun: true });
             return 0;
           }
           const { execFileSync } = await import('node:child_process');
-          const out = execFileSync('mn', ['contract', 'deploy', '--managed', 'contract/managed/pool', '--wallet', wallet, '--args', JSON.stringify([ownerIdBytes, saltBytes]), '--json'], { encoding: 'utf8', timeout: 280_000 });
+          // UNVERIFIED: mn --args boolean encoding for the pool's third
+          // constructor parameter (validated by the M6 devnet run).
+          const out = execFileSync('mn', ['contract', 'deploy', '--managed', 'contract/managed/pool', '--wallet', wallet, '--args', JSON.stringify([ownerIdBytes, saltBytes, faucetOpen]), '--json'], { encoding: 'utf8', timeout: 280_000 });
           const deployed = JSON.parse(out);
           const address = String(deployed.address ?? '');
           if (!/^[0-9a-f]{64}$/.test(address)) throw new Error(`mn contract deploy returned an invalid address: ${out.slice(0, 200)}`);
           const entry = registry.addPool(name, address, { networkId: undefined });
-          emit(json, { command: 'pools deploy', name, ...entry, ownerId: Buffer.from(ownerIdBytes).toString('hex'), salt: saltRaw });
+          emit(json, { command: 'pools deploy', name, ...entry, ownerId: Buffer.from(ownerIdBytes).toString('hex'), salt: saltRaw, faucetOpen });
           return 0;
         }
         default:

@@ -678,6 +678,15 @@
         "type-name": "Uint",
         "maxval": 340282366920938463463374607431768211455
       }
+    },
+    {
+      "name": "_faucetOpen",
+      "index": 7,
+      "exported": true,
+      "storage": "Cell",
+      "type": {
+        "type-name": "Boolean"
+      }
     }
   ]
 }

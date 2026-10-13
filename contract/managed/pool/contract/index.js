@@ -225,35 +225,35 @@ export class Contract {
         if (!(typeof(contextOrig_0) === 'object' && contextOrig_0.currentQueryContext != undefined)) {
           __compactRuntime.typeError('faucet',
                                      'argument 1 (as invoked from Typescript)',
-                                     'pool.compact line 44 char 1',
+                                     'pool.compact line 48 char 1',
                                      'CircuitContext',
                                      contextOrig_0)
         }
         if (!(typeof(amountA_0) === 'bigint' && amountA_0 >= 0n && amountA_0 <= 18446744073709551615n)) {
           __compactRuntime.typeError('faucet',
                                      'argument 1 (argument 2 as invoked from Typescript)',
-                                     'pool.compact line 44 char 1',
+                                     'pool.compact line 48 char 1',
                                      'Uint<0..18446744073709551616>',
                                      amountA_0)
         }
         if (!(typeof(amountB_0) === 'bigint' && amountB_0 >= 0n && amountB_0 <= 18446744073709551615n)) {
           __compactRuntime.typeError('faucet',
                                      'argument 2 (argument 3 as invoked from Typescript)',
-                                     'pool.compact line 44 char 1',
+                                     'pool.compact line 48 char 1',
                                      'Uint<0..18446744073709551616>',
                                      amountB_0)
         }
         if (!(nonceA_0.buffer instanceof ArrayBuffer && nonceA_0.BYTES_PER_ELEMENT === 1 && nonceA_0.length === 32)) {
           __compactRuntime.typeError('faucet',
                                      'argument 3 (argument 4 as invoked from Typescript)',
-                                     'pool.compact line 44 char 1',
+                                     'pool.compact line 48 char 1',
                                      'Bytes<32>',
                                      nonceA_0)
         }
         if (!(nonceB_0.buffer instanceof ArrayBuffer && nonceB_0.BYTES_PER_ELEMENT === 1 && nonceB_0.length === 32)) {
           __compactRuntime.typeError('faucet',
                                      'argument 4 (argument 5 as invoked from Typescript)',
-                                     'pool.compact line 44 char 1',
+                                     'pool.compact line 48 char 1',
                                      'Bytes<32>',
                                      nonceB_0)
         }
@@ -288,35 +288,35 @@ export class Contract {
         if (!(typeof(contextOrig_0) === 'object' && contextOrig_0.currentQueryContext != undefined)) {
           __compactRuntime.typeError('seed',
                                      'argument 1 (as invoked from Typescript)',
-                                     'pool.compact line 59 char 1',
+                                     'pool.compact line 65 char 1',
                                      'CircuitContext',
                                      contextOrig_0)
         }
         if (!(typeof(coinA_0) === 'object' && coinA_0.nonce.buffer instanceof ArrayBuffer && coinA_0.nonce.BYTES_PER_ELEMENT === 1 && coinA_0.nonce.length === 32 && coinA_0.color.buffer instanceof ArrayBuffer && coinA_0.color.BYTES_PER_ELEMENT === 1 && coinA_0.color.length === 32 && typeof(coinA_0.value) === 'bigint' && coinA_0.value >= 0n && coinA_0.value <= 340282366920938463463374607431768211455n)) {
           __compactRuntime.typeError('seed',
                                      'argument 1 (argument 2 as invoked from Typescript)',
-                                     'pool.compact line 59 char 1',
+                                     'pool.compact line 65 char 1',
                                      'struct ShieldedCoinInfo<nonce: Bytes<32>, color: Bytes<32>, value: Uint<0..340282366920938463463374607431768211456>>',
                                      coinA_0)
         }
         if (!(typeof(coinB_0) === 'object' && coinB_0.nonce.buffer instanceof ArrayBuffer && coinB_0.nonce.BYTES_PER_ELEMENT === 1 && coinB_0.nonce.length === 32 && coinB_0.color.buffer instanceof ArrayBuffer && coinB_0.color.BYTES_PER_ELEMENT === 1 && coinB_0.color.length === 32 && typeof(coinB_0.value) === 'bigint' && coinB_0.value >= 0n && coinB_0.value <= 340282366920938463463374607431768211455n)) {
           __compactRuntime.typeError('seed',
                                      'argument 2 (argument 3 as invoked from Typescript)',
-                                     'pool.compact line 59 char 1',
+                                     'pool.compact line 65 char 1',
                                      'struct ShieldedCoinInfo<nonce: Bytes<32>, color: Bytes<32>, value: Uint<0..340282366920938463463374607431768211456>>',
                                      coinB_0)
         }
         if (!(typeof(initialLp_0) === 'bigint' && initialLp_0 >= 0n && initialLp_0 <= 18446744073709551615n)) {
           __compactRuntime.typeError('seed',
                                      'argument 3 (argument 4 as invoked from Typescript)',
-                                     'pool.compact line 59 char 1',
+                                     'pool.compact line 65 char 1',
                                      'Uint<0..18446744073709551616>',
                                      initialLp_0)
         }
         if (!(nonceLp_0.buffer instanceof ArrayBuffer && nonceLp_0.BYTES_PER_ELEMENT === 1 && nonceLp_0.length === 32)) {
           __compactRuntime.typeError('seed',
                                      'argument 4 (argument 5 as invoked from Typescript)',
-                                     'pool.compact line 59 char 1',
+                                     'pool.compact line 65 char 1',
                                      'Bytes<32>',
                                      nonceLp_0)
         }
@@ -351,35 +351,35 @@ export class Contract {
         if (!(typeof(contextOrig_0) === 'object' && contextOrig_0.currentQueryContext != undefined)) {
           __compactRuntime.typeError('swap',
                                      'argument 1 (as invoked from Typescript)',
-                                     'pool.compact line 88 char 1',
+                                     'pool.compact line 94 char 1',
                                      'CircuitContext',
                                      contextOrig_0)
         }
         if (!(typeof(inCoin_0) === 'object' && inCoin_0.nonce.buffer instanceof ArrayBuffer && inCoin_0.nonce.BYTES_PER_ELEMENT === 1 && inCoin_0.nonce.length === 32 && inCoin_0.color.buffer instanceof ArrayBuffer && inCoin_0.color.BYTES_PER_ELEMENT === 1 && inCoin_0.color.length === 32 && typeof(inCoin_0.value) === 'bigint' && inCoin_0.value >= 0n && inCoin_0.value <= 340282366920938463463374607431768211455n)) {
           __compactRuntime.typeError('swap',
                                      'argument 1 (argument 2 as invoked from Typescript)',
-                                     'pool.compact line 88 char 1',
+                                     'pool.compact line 94 char 1',
                                      'struct ShieldedCoinInfo<nonce: Bytes<32>, color: Bytes<32>, value: Uint<0..340282366920938463463374607431768211456>>',
                                      inCoin_0)
         }
         if (!(typeof(amountIn_0) === 'bigint' && amountIn_0 >= 0n && amountIn_0 <= 18446744073709551615n)) {
           __compactRuntime.typeError('swap',
                                      'argument 2 (argument 3 as invoked from Typescript)',
-                                     'pool.compact line 88 char 1',
+                                     'pool.compact line 94 char 1',
                                      'Uint<0..18446744073709551616>',
                                      amountIn_0)
         }
         if (!(typeof(amountOut_0) === 'bigint' && amountOut_0 >= 0n && amountOut_0 <= 18446744073709551615n)) {
           __compactRuntime.typeError('swap',
                                      'argument 3 (argument 4 as invoked from Typescript)',
-                                     'pool.compact line 88 char 1',
+                                     'pool.compact line 94 char 1',
                                      'Uint<0..18446744073709551616>',
                                      amountOut_0)
         }
         if (!(typeof(minAmountOut_0) === 'bigint' && minAmountOut_0 >= 0n && minAmountOut_0 <= 18446744073709551615n)) {
           __compactRuntime.typeError('swap',
                                      'argument 4 (argument 5 as invoked from Typescript)',
-                                     'pool.compact line 88 char 1',
+                                     'pool.compact line 94 char 1',
                                      'Uint<0..18446744073709551616>',
                                      minAmountOut_0)
         }
@@ -417,56 +417,56 @@ export class Contract {
         if (!(typeof(contextOrig_0) === 'object' && contextOrig_0.currentQueryContext != undefined)) {
           __compactRuntime.typeError('addLiquidity',
                                      'argument 1 (as invoked from Typescript)',
-                                     'pool.compact line 157 char 1',
+                                     'pool.compact line 163 char 1',
                                      'CircuitContext',
                                      contextOrig_0)
         }
         if (!(typeof(coinA_0) === 'object' && coinA_0.nonce.buffer instanceof ArrayBuffer && coinA_0.nonce.BYTES_PER_ELEMENT === 1 && coinA_0.nonce.length === 32 && coinA_0.color.buffer instanceof ArrayBuffer && coinA_0.color.BYTES_PER_ELEMENT === 1 && coinA_0.color.length === 32 && typeof(coinA_0.value) === 'bigint' && coinA_0.value >= 0n && coinA_0.value <= 340282366920938463463374607431768211455n)) {
           __compactRuntime.typeError('addLiquidity',
                                      'argument 1 (argument 2 as invoked from Typescript)',
-                                     'pool.compact line 157 char 1',
+                                     'pool.compact line 163 char 1',
                                      'struct ShieldedCoinInfo<nonce: Bytes<32>, color: Bytes<32>, value: Uint<0..340282366920938463463374607431768211456>>',
                                      coinA_0)
         }
         if (!(typeof(amountA_0) === 'bigint' && amountA_0 >= 0n && amountA_0 <= 18446744073709551615n)) {
           __compactRuntime.typeError('addLiquidity',
                                      'argument 2 (argument 3 as invoked from Typescript)',
-                                     'pool.compact line 157 char 1',
+                                     'pool.compact line 163 char 1',
                                      'Uint<0..18446744073709551616>',
                                      amountA_0)
         }
         if (!(typeof(coinB_0) === 'object' && coinB_0.nonce.buffer instanceof ArrayBuffer && coinB_0.nonce.BYTES_PER_ELEMENT === 1 && coinB_0.nonce.length === 32 && coinB_0.color.buffer instanceof ArrayBuffer && coinB_0.color.BYTES_PER_ELEMENT === 1 && coinB_0.color.length === 32 && typeof(coinB_0.value) === 'bigint' && coinB_0.value >= 0n && coinB_0.value <= 340282366920938463463374607431768211455n)) {
           __compactRuntime.typeError('addLiquidity',
                                      'argument 3 (argument 4 as invoked from Typescript)',
-                                     'pool.compact line 157 char 1',
+                                     'pool.compact line 163 char 1',
                                      'struct ShieldedCoinInfo<nonce: Bytes<32>, color: Bytes<32>, value: Uint<0..340282366920938463463374607431768211456>>',
                                      coinB_0)
         }
         if (!(typeof(amountB_0) === 'bigint' && amountB_0 >= 0n && amountB_0 <= 18446744073709551615n)) {
           __compactRuntime.typeError('addLiquidity',
                                      'argument 4 (argument 5 as invoked from Typescript)',
-                                     'pool.compact line 157 char 1',
+                                     'pool.compact line 163 char 1',
                                      'Uint<0..18446744073709551616>',
                                      amountB_0)
         }
         if (!(typeof(lpOut_0) === 'bigint' && lpOut_0 >= 0n && lpOut_0 <= 18446744073709551615n)) {
           __compactRuntime.typeError('addLiquidity',
                                      'argument 5 (argument 6 as invoked from Typescript)',
-                                     'pool.compact line 157 char 1',
+                                     'pool.compact line 163 char 1',
                                      'Uint<0..18446744073709551616>',
                                      lpOut_0)
         }
         if (!(typeof(minLpOut_0) === 'bigint' && minLpOut_0 >= 0n && minLpOut_0 <= 18446744073709551615n)) {
           __compactRuntime.typeError('addLiquidity',
                                      'argument 6 (argument 7 as invoked from Typescript)',
-                                     'pool.compact line 157 char 1',
+                                     'pool.compact line 163 char 1',
                                      'Uint<0..18446744073709551616>',
                                      minLpOut_0)
         }
         if (!(nonceLp_0.buffer instanceof ArrayBuffer && nonceLp_0.BYTES_PER_ELEMENT === 1 && nonceLp_0.length === 32)) {
           __compactRuntime.typeError('addLiquidity',
                                      'argument 7 (argument 8 as invoked from Typescript)',
-                                     'pool.compact line 157 char 1',
+                                     'pool.compact line 163 char 1',
                                      'Bytes<32>',
                                      nonceLp_0)
         }
@@ -508,63 +508,63 @@ export class Contract {
         if (!(typeof(contextOrig_0) === 'object' && contextOrig_0.currentQueryContext != undefined)) {
           __compactRuntime.typeError('removeLiquidity',
                                      'argument 1 (as invoked from Typescript)',
-                                     'pool.compact line 231 char 1',
+                                     'pool.compact line 237 char 1',
                                      'CircuitContext',
                                      contextOrig_0)
         }
         if (!(typeof(coinLp_0) === 'object' && coinLp_0.nonce.buffer instanceof ArrayBuffer && coinLp_0.nonce.BYTES_PER_ELEMENT === 1 && coinLp_0.nonce.length === 32 && coinLp_0.color.buffer instanceof ArrayBuffer && coinLp_0.color.BYTES_PER_ELEMENT === 1 && coinLp_0.color.length === 32 && typeof(coinLp_0.value) === 'bigint' && coinLp_0.value >= 0n && coinLp_0.value <= 340282366920938463463374607431768211455n)) {
           __compactRuntime.typeError('removeLiquidity',
                                      'argument 1 (argument 2 as invoked from Typescript)',
-                                     'pool.compact line 231 char 1',
+                                     'pool.compact line 237 char 1',
                                      'struct ShieldedCoinInfo<nonce: Bytes<32>, color: Bytes<32>, value: Uint<0..340282366920938463463374607431768211456>>',
                                      coinLp_0)
         }
         if (!(typeof(amountLp_0) === 'bigint' && amountLp_0 >= 0n && amountLp_0 <= 18446744073709551615n)) {
           __compactRuntime.typeError('removeLiquidity',
                                      'argument 2 (argument 3 as invoked from Typescript)',
-                                     'pool.compact line 231 char 1',
+                                     'pool.compact line 237 char 1',
                                      'Uint<0..18446744073709551616>',
                                      amountLp_0)
         }
         if (!(typeof(aOut_0) === 'bigint' && aOut_0 >= 0n && aOut_0 <= 18446744073709551615n)) {
           __compactRuntime.typeError('removeLiquidity',
                                      'argument 3 (argument 4 as invoked from Typescript)',
-                                     'pool.compact line 231 char 1',
+                                     'pool.compact line 237 char 1',
                                      'Uint<0..18446744073709551616>',
                                      aOut_0)
         }
         if (!(typeof(bOut_0) === 'bigint' && bOut_0 >= 0n && bOut_0 <= 18446744073709551615n)) {
           __compactRuntime.typeError('removeLiquidity',
                                      'argument 4 (argument 5 as invoked from Typescript)',
-                                     'pool.compact line 231 char 1',
+                                     'pool.compact line 237 char 1',
                                      'Uint<0..18446744073709551616>',
                                      bOut_0)
         }
         if (!(typeof(minA_0) === 'bigint' && minA_0 >= 0n && minA_0 <= 18446744073709551615n)) {
           __compactRuntime.typeError('removeLiquidity',
                                      'argument 5 (argument 6 as invoked from Typescript)',
-                                     'pool.compact line 231 char 1',
+                                     'pool.compact line 237 char 1',
                                      'Uint<0..18446744073709551616>',
                                      minA_0)
         }
         if (!(typeof(minB_0) === 'bigint' && minB_0 >= 0n && minB_0 <= 18446744073709551615n)) {
           __compactRuntime.typeError('removeLiquidity',
                                      'argument 6 (argument 7 as invoked from Typescript)',
-                                     'pool.compact line 231 char 1',
+                                     'pool.compact line 237 char 1',
                                      'Uint<0..18446744073709551616>',
                                      minB_0)
         }
         if (!(nonceA_0.buffer instanceof ArrayBuffer && nonceA_0.BYTES_PER_ELEMENT === 1 && nonceA_0.length === 32)) {
           __compactRuntime.typeError('removeLiquidity',
                                      'argument 7 (argument 8 as invoked from Typescript)',
-                                     'pool.compact line 231 char 1',
+                                     'pool.compact line 237 char 1',
                                      'Bytes<32>',
                                      nonceA_0)
         }
         if (!(nonceB_0.buffer instanceof ArrayBuffer && nonceB_0.BYTES_PER_ELEMENT === 1 && nonceB_0.length === 32)) {
           __compactRuntime.typeError('removeLiquidity',
                                      'argument 8 (argument 9 as invoked from Typescript)',
-                                     'pool.compact line 231 char 1',
+                                     'pool.compact line 237 char 1',
                                      'Bytes<32>',
                                      nonceB_0)
         }
@@ -599,7 +599,7 @@ export class Contract {
         if (!(typeof(contextOrig_0) === 'object' && contextOrig_0.currentQueryContext != undefined)) {
           __compactRuntime.typeError('pause',
                                      'argument 1 (as invoked from Typescript)',
-                                     'pool.compact line 288 char 1',
+                                     'pool.compact line 294 char 1',
                                      'CircuitContext',
                                      contextOrig_0)
         }
@@ -622,7 +622,7 @@ export class Contract {
         if (!(typeof(contextOrig_0) === 'object' && contextOrig_0.currentQueryContext != undefined)) {
           __compactRuntime.typeError('unpause',
                                      'argument 1 (as invoked from Typescript)',
-                                     'pool.compact line 293 char 1',
+                                     'pool.compact line 299 char 1',
                                      'CircuitContext',
                                      contextOrig_0)
         }
@@ -658,12 +658,13 @@ export class Contract {
     };
   }
   initialState(...args_0) {
-    if (args_0.length !== 3) {
-      throw new __compactRuntime.CompactError(`Contract state constructor: expected 3 arguments (as invoked from Typescript), received ${args_0.length}`);
+    if (args_0.length !== 4) {
+      throw new __compactRuntime.CompactError(`Contract state constructor: expected 4 arguments (as invoked from Typescript), received ${args_0.length}`);
     }
     const constructorContext_0 = args_0[0];
     const ownerId_0 = args_0[1];
     const instanceSalt_0 = args_0[2];
+    const faucetOpen_0 = args_0[3];
     if (typeof(constructorContext_0) !== 'object') {
       throw new __compactRuntime.CompactError(`Contract state constructor: expected 'constructorContext' in argument 1 (as invoked from Typescript) to be an object`);
     }
@@ -679,19 +680,27 @@ export class Contract {
     if (!(ownerId_0.buffer instanceof ArrayBuffer && ownerId_0.BYTES_PER_ELEMENT === 1 && ownerId_0.length === 32)) {
       __compactRuntime.typeError('Contract state constructor',
                                  'argument 1 (argument 2 as invoked from Typescript)',
-                                 'pool.compact line 24 char 1',
+                                 'pool.compact line 27 char 1',
                                  'Bytes<32>',
                                  ownerId_0)
     }
     if (!(instanceSalt_0.buffer instanceof ArrayBuffer && instanceSalt_0.BYTES_PER_ELEMENT === 1 && instanceSalt_0.length === 32)) {
       __compactRuntime.typeError('Contract state constructor',
                                  'argument 2 (argument 3 as invoked from Typescript)',
-                                 'pool.compact line 24 char 1',
+                                 'pool.compact line 27 char 1',
                                  'Bytes<32>',
                                  instanceSalt_0)
     }
+    if (!(typeof(faucetOpen_0) === 'boolean')) {
+      __compactRuntime.typeError('Contract state constructor',
+                                 'argument 3 (argument 4 as invoked from Typescript)',
+                                 'pool.compact line 27 char 1',
+                                 'Boolean',
+                                 faucetOpen_0)
+    }
     const state_0 = new __compactRuntime.ContractState();
     let stateValue_0 = __compactRuntime.StateValue.newArray();
+    stateValue_0 = stateValue_0.arrayPush(__compactRuntime.StateValue.newNull());
     stateValue_0 = stateValue_0.arrayPush(__compactRuntime.StateValue.newNull());
     stateValue_0 = stateValue_0.arrayPush(__compactRuntime.StateValue.newNull());
     stateValue_0 = stateValue_0.arrayPush(__compactRuntime.StateValue.newNull());
@@ -785,7 +794,27 @@ export class Contract {
                                                  value: __compactRuntime.StateValue.newCell({ value: _descriptor_1.toValue(0n),
                                                                                               alignment: _descriptor_1.alignment() }).encode() } },
                                        { ins: { cached: false, n: 1 } }]);
+    __compactRuntime.queryLedgerState(context,
+                                      partialProofData,
+                                      [
+                                       { push: { storage: false,
+                                                 value: __compactRuntime.StateValue.newCell({ value: _descriptor_20.toValue(7n),
+                                                                                              alignment: _descriptor_20.alignment() }).encode() } },
+                                       { push: { storage: true,
+                                                 value: __compactRuntime.StateValue.newCell({ value: _descriptor_4.toValue(false),
+                                                                                              alignment: _descriptor_4.alignment() }).encode() } },
+                                       { ins: { cached: false, n: 1 } }]);
     this._initialize_0(context, partialProofData, ownerId_0, instanceSalt_0);
+    __compactRuntime.queryLedgerState(context,
+                                      partialProofData,
+                                      [
+                                       { push: { storage: false,
+                                                 value: __compactRuntime.StateValue.newCell({ value: _descriptor_20.toValue(7n),
+                                                                                              alignment: _descriptor_20.alignment() }).encode() } },
+                                       { push: { storage: true,
+                                                 value: __compactRuntime.StateValue.newCell({ value: _descriptor_4.toValue(faucetOpen_0),
+                                                                                              alignment: _descriptor_4.alignment() }).encode() } },
+                                       { ins: { cached: false, n: 1 } }]);
     state_0.data = new __compactRuntime.ChargedState(context.currentQueryContext.state.state);
     return {
       currentContractState: state_0,
@@ -1592,6 +1621,20 @@ export class Contract {
   }
   _faucet_0(context, partialProofData, amountA_0, amountB_0, nonceA_0, nonceB_0)
   {
+    this._assertNotPaused_0(context, partialProofData);
+    __compactRuntime.assert(_descriptor_4.fromValue(__compactRuntime.queryLedgerState(context,
+                                                                                      partialProofData,
+                                                                                      [
+                                                                                       { dup: { n: 0 } },
+                                                                                       { idx: { cached: false,
+                                                                                                pushPath: false,
+                                                                                                path: [
+                                                                                                       { tag: 'value',
+                                                                                                         value: { value: _descriptor_20.toValue(7n),
+                                                                                                                  alignment: _descriptor_20.alignment() } }] } },
+                                                                                       { popeq: { cached: false,
+                                                                                                  result: undefined } }]).value),
+                            'AMM: faucet closed');
     __compactRuntime.assert(amountA_0 > 0n, 'faucet: amountA is zero');
     __compactRuntime.assert(amountB_0 > 0n, 'faucet: amountB is zero');
     const coinA_0 = this._mintShieldedToken_0(context,
@@ -1741,7 +1784,7 @@ export class Contract {
                                                                                                      { ins: { cached: false,
                                                                                                               n: 1 } },
                                                                                                      { ins: { cached: true,
-                                                                                                              n: 1 } }]) : (() => { throw new __compactRuntime.CompactError(`pool.compact line 72 char 3: Coin commitment not found. Check the coin has been received (or call 'createZswapOutput')`); })();
+                                                                                                              n: 1 } }]) : (() => { throw new __compactRuntime.CompactError(`pool.compact line 78 char 3: Coin commitment not found. Check the coin has been received (or call 'createZswapOutput')`); })();
     this._receiveShielded_0(context, partialProofData, coinB_0);
     const tmp_1 = this._right_0(_descriptor_7.fromValue(__compactRuntime.queryLedgerState(context,
                                                                                           partialProofData,
@@ -1791,7 +1834,7 @@ export class Contract {
                                                                                                      { ins: { cached: false,
                                                                                                               n: 1 } },
                                                                                                      { ins: { cached: true,
-                                                                                                              n: 1 } }]) : (() => { throw new __compactRuntime.CompactError(`pool.compact line 74 char 3: Coin commitment not found. Check the coin has been received (or call 'createZswapOutput')`); })();
+                                                                                                              n: 1 } }]) : (() => { throw new __compactRuntime.CompactError(`pool.compact line 80 char 3: Coin commitment not found. Check the coin has been received (or call 'createZswapOutput')`); })();
     const lpCoin_0 = this._mintShieldedToken_0(context,
                                                partialProofData,
                                                new Uint8Array([109, 110, 45, 97, 109, 109, 58, 108, 112, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
@@ -1928,7 +1971,7 @@ export class Contract {
                             <=
                             ((t1) => {
                               if (t1 > 18446744073709551615n) {
-                                throw new __compactRuntime.CompactError('pool.compact line 107 char 23: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
+                                throw new __compactRuntime.CompactError('pool.compact line 113 char 23: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
                               }
                               return t1;
                             })(inCoin_0.value),
@@ -1936,13 +1979,13 @@ export class Contract {
     const v_0 = amountIn_0;
     const rIn_0 = ((t1) => {
                     if (t1 > 18446744073709551615n) {
-                      throw new __compactRuntime.CompactError('pool.compact line 109 char 15: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
+                      throw new __compactRuntime.CompactError('pool.compact line 115 char 15: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
                     }
                     return t1;
                   })(potIn_0.value);
     const rOut_0 = ((t1) => {
                      if (t1 > 18446744073709551615n) {
-                       throw new __compactRuntime.CompactError('pool.compact line 110 char 16: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
+                       throw new __compactRuntime.CompactError('pool.compact line 116 char 16: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
                      }
                      return t1;
                    })(potOut_0.value);
@@ -1970,7 +2013,7 @@ export class Contract {
     if (this._equal_11(amountIn_0,
                        ((t1) => {
                          if (t1 > 18446744073709551615n) {
-                           throw new __compactRuntime.CompactError('pool.compact line 127 char 29: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
+                           throw new __compactRuntime.CompactError('pool.compact line 133 char 29: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
                          }
                          return t1;
                        })(inCoin_0.value)))
@@ -2027,7 +2070,7 @@ export class Contract {
                                                                                                         { ins: { cached: false,
                                                                                                                  n: 1 } },
                                                                                                         { ins: { cached: true,
-                                                                                                                 n: 1 } }]) : (() => { throw new __compactRuntime.CompactError(`pool.compact line 130 char 5: Coin commitment not found. Check the coin has been received (or call 'createZswapOutput')`); })();
+                                                                                                                 n: 1 } }]) : (() => { throw new __compactRuntime.CompactError(`pool.compact line 136 char 5: Coin commitment not found. Check the coin has been received (or call 'createZswapOutput')`); })();
     } else {
       let t_5, t_6;
       const split_0 = this._sendImmediateShielded_0(context,
@@ -2096,7 +2139,7 @@ export class Contract {
                                                                                                         { ins: { cached: false,
                                                                                                                  n: 1 } },
                                                                                                         { ins: { cached: true,
-                                                                                                                 n: 1 } }]) : (() => { throw new __compactRuntime.CompactError(`pool.compact line 140 char 5: Coin commitment not found. Check the coin has been received (or call 'createZswapOutput')`); })();
+                                                                                                                 n: 1 } }]) : (() => { throw new __compactRuntime.CompactError(`pool.compact line 146 char 5: Coin commitment not found. Check the coin has been received (or call 'createZswapOutput')`); })();
     }
     const sendVal_0 = amountOut_0;
     const result_0 = this._sendShielded_0(context,
@@ -2155,7 +2198,7 @@ export class Contract {
                                                                                                      { ins: { cached: false,
                                                                                                               n: 1 } },
                                                                                                      { ins: { cached: true,
-                                                                                                              n: 1 } }]) : (() => { throw new __compactRuntime.CompactError(`pool.compact line 146 char 5: Coin commitment not found. Check the coin has been received (or call 'createZswapOutput')`); })();
+                                                                                                              n: 1 } }]) : (() => { throw new __compactRuntime.CompactError(`pool.compact line 152 char 5: Coin commitment not found. Check the coin has been received (or call 'createZswapOutput')`); })();
     } else {
       __compactRuntime.queryLedgerState(context,
                                         partialProofData,
@@ -2311,7 +2354,7 @@ export class Contract {
                             <=
                             ((t1) => {
                               if (t1 > 18446744073709551615n) {
-                                throw new __compactRuntime.CompactError('pool.compact line 176 char 22: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
+                                throw new __compactRuntime.CompactError('pool.compact line 182 char 22: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
                               }
                               return t1;
                             })(coinA_0.value),
@@ -2320,7 +2363,7 @@ export class Contract {
                             <=
                             ((t1) => {
                               if (t1 > 18446744073709551615n) {
-                                throw new __compactRuntime.CompactError('pool.compact line 177 char 22: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
+                                throw new __compactRuntime.CompactError('pool.compact line 183 char 22: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
                               }
                               return t1;
                             })(coinB_0.value),
@@ -2330,7 +2373,7 @@ export class Contract {
                             'AMM: lpOut too large');
     const S_0 = ((t1) => {
                   if (t1 > 18446744073709551615n) {
-                    throw new __compactRuntime.CompactError('pool.compact line 181 char 13: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
+                    throw new __compactRuntime.CompactError('pool.compact line 187 char 13: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
                   }
                   return t1;
                 })(_descriptor_1.fromValue(__compactRuntime.queryLedgerState(context,
@@ -2347,13 +2390,13 @@ export class Contract {
                                                                                          result: undefined } }]).value));
     const rA_0 = ((t1) => {
                    if (t1 > 18446744073709551615n) {
-                     throw new __compactRuntime.CompactError('pool.compact line 182 char 14: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
+                     throw new __compactRuntime.CompactError('pool.compact line 188 char 14: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
                    }
                    return t1;
                  })(potA_0.value);
     const rB_0 = ((t1) => {
                    if (t1 > 18446744073709551615n) {
-                     throw new __compactRuntime.CompactError('pool.compact line 183 char 14: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
+                     throw new __compactRuntime.CompactError('pool.compact line 189 char 14: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
                    }
                    return t1;
                  })(potB_0.value);
@@ -2386,7 +2429,7 @@ export class Contract {
     if (this._equal_14(amountA_0,
                        ((t1) => {
                          if (t1 > 18446744073709551615n) {
-                           throw new __compactRuntime.CompactError('pool.compact line 200 char 28: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
+                           throw new __compactRuntime.CompactError('pool.compact line 206 char 28: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
                          }
                          return t1;
                        })(coinA_0.value)))
@@ -2443,7 +2486,7 @@ export class Contract {
                                                                                                          { ins: { cached: false,
                                                                                                                   n: 1 } },
                                                                                                          { ins: { cached: true,
-                                                                                                                  n: 1 } }]) : (() => { throw new __compactRuntime.CompactError(`pool.compact line 202 char 5: Coin commitment not found. Check the coin has been received (or call 'createZswapOutput')`); })();
+                                                                                                                  n: 1 } }]) : (() => { throw new __compactRuntime.CompactError(`pool.compact line 208 char 5: Coin commitment not found. Check the coin has been received (or call 'createZswapOutput')`); })();
     } else {
       let t_13, t_14;
       const splitA_0 = this._sendImmediateShielded_0(context,
@@ -2512,13 +2555,13 @@ export class Contract {
                                                                                                          { ins: { cached: false,
                                                                                                                   n: 1 } },
                                                                                                          { ins: { cached: true,
-                                                                                                                  n: 1 } }]) : (() => { throw new __compactRuntime.CompactError(`pool.compact line 207 char 5: Coin commitment not found. Check the coin has been received (or call 'createZswapOutput')`); })();
+                                                                                                                  n: 1 } }]) : (() => { throw new __compactRuntime.CompactError(`pool.compact line 213 char 5: Coin commitment not found. Check the coin has been received (or call 'createZswapOutput')`); })();
     }
     this._receiveShielded_0(context, partialProofData, coinB_0);
     if (this._equal_15(amountB_0,
                        ((t1) => {
                          if (t1 > 18446744073709551615n) {
-                           throw new __compactRuntime.CompactError('pool.compact line 210 char 28: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
+                           throw new __compactRuntime.CompactError('pool.compact line 216 char 28: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
                          }
                          return t1;
                        })(coinB_0.value)))
@@ -2575,7 +2618,7 @@ export class Contract {
                                                                                                          { ins: { cached: false,
                                                                                                                   n: 1 } },
                                                                                                          { ins: { cached: true,
-                                                                                                                  n: 1 } }]) : (() => { throw new __compactRuntime.CompactError(`pool.compact line 212 char 5: Coin commitment not found. Check the coin has been received (or call 'createZswapOutput')`); })();
+                                                                                                                  n: 1 } }]) : (() => { throw new __compactRuntime.CompactError(`pool.compact line 218 char 5: Coin commitment not found. Check the coin has been received (or call 'createZswapOutput')`); })();
     } else {
       let t_15, t_16;
       const splitB_0 = this._sendImmediateShielded_0(context,
@@ -2644,7 +2687,7 @@ export class Contract {
                                                                                                          { ins: { cached: false,
                                                                                                                   n: 1 } },
                                                                                                          { ins: { cached: true,
-                                                                                                                  n: 1 } }]) : (() => { throw new __compactRuntime.CompactError(`pool.compact line 217 char 5: Coin commitment not found. Check the coin has been received (or call 'createZswapOutput')`); })();
+                                                                                                                  n: 1 } }]) : (() => { throw new __compactRuntime.CompactError(`pool.compact line 223 char 5: Coin commitment not found. Check the coin has been received (or call 'createZswapOutput')`); })();
     }
     const lpCoin_0 = this._mintShieldedToken_0(context,
                                                partialProofData,
@@ -2671,7 +2714,7 @@ export class Contract {
                                                    lpCoin_0.value);
     const tmp_4 = ((t1) => {
                     if (t1 > 340282366920938463463374607431768211455n) {
-                      throw new __compactRuntime.CompactError('pool.compact line 222 char 24: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 340282366920938463463374607431768211455');
+                      throw new __compactRuntime.CompactError('pool.compact line 228 char 24: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 340282366920938463463374607431768211455');
                     }
                     return t1;
                   })(_descriptor_1.fromValue(__compactRuntime.queryLedgerState(context,
@@ -2832,7 +2875,7 @@ export class Contract {
                             <=
                             ((t1) => {
                               if (t1 > 18446744073709551615n) {
-                                throw new __compactRuntime.CompactError('pool.compact line 248 char 23: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
+                                throw new __compactRuntime.CompactError('pool.compact line 254 char 23: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
                               }
                               return t1;
                             })(coinLp_0.value),
@@ -2841,7 +2884,7 @@ export class Contract {
                             <=
                             ((t1) => {
                               if (t1 > 18446744073709551615n) {
-                                throw new __compactRuntime.CompactError('pool.compact line 249 char 23: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
+                                throw new __compactRuntime.CompactError('pool.compact line 255 char 23: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
                               }
                               return t1;
                             })(_descriptor_1.fromValue(__compactRuntime.queryLedgerState(context,
@@ -2864,7 +2907,7 @@ export class Contract {
                             'AMM: payout B exceeds reserve');
     const S_0 = ((t1) => {
                   if (t1 > 18446744073709551615n) {
-                    throw new __compactRuntime.CompactError('pool.compact line 254 char 13: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
+                    throw new __compactRuntime.CompactError('pool.compact line 260 char 13: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
                   }
                   return t1;
                 })(_descriptor_1.fromValue(__compactRuntime.queryLedgerState(context,
@@ -2881,13 +2924,13 @@ export class Contract {
                                                                                          result: undefined } }]).value));
     const rA_0 = ((t1) => {
                    if (t1 > 18446744073709551615n) {
-                     throw new __compactRuntime.CompactError('pool.compact line 255 char 14: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
+                     throw new __compactRuntime.CompactError('pool.compact line 261 char 14: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
                    }
                    return t1;
                  })(potA_0.value);
     const rB_0 = ((t1) => {
                    if (t1 > 18446744073709551615n) {
-                     throw new __compactRuntime.CompactError('pool.compact line 256 char 14: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
+                     throw new __compactRuntime.CompactError('pool.compact line 262 char 14: cast from Field or Uint value to smaller Uint value failed: ' + t1 + ' is greater than 18446744073709551615');
                    }
                    return t1;
                  })(potB_0.value);
@@ -2976,7 +3019,7 @@ export class Contract {
                                                                                                      { ins: { cached: false,
                                                                                                               n: 1 } },
                                                                                                      { ins: { cached: true,
-                                                                                                              n: 1 } }]) : (() => { throw new __compactRuntime.CompactError(`pool.compact line 274 char 5: Coin commitment not found. Check the coin has been received (or call 'createZswapOutput')`); })();
+                                                                                                              n: 1 } }]) : (() => { throw new __compactRuntime.CompactError(`pool.compact line 280 char 5: Coin commitment not found. Check the coin has been received (or call 'createZswapOutput')`); })();
     } else {
       __compactRuntime.queryLedgerState(context,
                                         partialProofData,
@@ -3049,7 +3092,7 @@ export class Contract {
                                                                                                      { ins: { cached: false,
                                                                                                               n: 1 } },
                                                                                                      { ins: { cached: true,
-                                                                                                              n: 1 } }]) : (() => { throw new __compactRuntime.CompactError(`pool.compact line 280 char 5: Coin commitment not found. Check the coin has been received (or call 'createZswapOutput')`); })();
+                                                                                                              n: 1 } }]) : (() => { throw new __compactRuntime.CompactError(`pool.compact line 286 char 5: Coin commitment not found. Check the coin has been received (or call 'createZswapOutput')`); })();
     } else {
       __compactRuntime.queryLedgerState(context,
                                         partialProofData,
@@ -3307,6 +3350,20 @@ export function ledger(stateOrChargedState) {
                                                                                  path: [
                                                                                         { tag: 'value',
                                                                                           value: { value: _descriptor_20.toValue(6n),
+                                                                                                   alignment: _descriptor_20.alignment() } }] } },
+                                                                        { popeq: { cached: false,
+                                                                                   result: undefined } }]).value);
+    },
+    get _faucetOpen() {
+      return _descriptor_4.fromValue(__compactRuntime.queryLedgerState(context,
+                                                                       partialProofData,
+                                                                       [
+                                                                        { dup: { n: 0 } },
+                                                                        { idx: { cached: false,
+                                                                                 pushPath: false,
+                                                                                 path: [
+                                                                                        { tag: 'value',
+                                                                                          value: { value: _descriptor_20.toValue(7n),
                                                                                                    alignment: _descriptor_20.alignment() } }] } },
                                                                         { popeq: { cached: false,
                                                                                    result: undefined } }]).value);

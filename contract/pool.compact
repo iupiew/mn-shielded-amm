@@ -18,11 +18,15 @@ import "../node_modules/@openzeppelin/compact-contracts/security/Pausable" prefi
 
 export ledger _coins: Map<Bytes<32>, QualifiedShieldedCoinInfo>;
 export ledger _lpSupply: Uint<128>;
+// Faucet gate, fixed at deploy time: public-release pools deploy with
+// false (mint disabled); demo/devnet pools pass true.
+export ledger _faucetOpen: Boolean;
 
 // UNVERIFIED: constructor may call imported module circuits
 // (verified pattern: ShieldedMultiSig preset calls Signer_initialize in constructor).
-constructor(ownerId: Bytes<32>, instanceSalt: Bytes<32>) {
+constructor(ownerId: Bytes<32>, instanceSalt: Bytes<32>, faucetOpen: Boolean) {
   ZOwn_initialize(ownerId, instanceSalt);
+  _faucetOpen = disclose(faucetOpen);
 }
 
 circuit tokenColorA(): Bytes<32> {
@@ -39,9 +43,11 @@ circuit lpColor(): Bytes<32> {
 
 // UNVERIFIED: caller-supplied nonces must be unique per mint (enforced off-chain
 // in api/); the ledger rejects duplicate coin ids from nonce reuse.
-// Open faucet (since M8, after a gated M7 experiment): anyone can mint, so
-// pool tokens are free demo units — pause/unpause stay owner-gated below.
+// Gated faucet (M3): mint only when the deploy-time flag is set AND the pool
+// is not paused; pause/unpause stay owner-gated below.
 export circuit faucet(amountA: Uint<64>, amountB: Uint<64>, nonceA: Bytes<32>, nonceB: Bytes<32>): [ShieldedCoinInfo, ShieldedCoinInfo] {
+  Pausable_assertNotPaused();
+  assert(_faucetOpen, "AMM: faucet closed");
   assert(amountA > 0, "faucet: amountA is zero");
   assert(amountB > 0, "faucet: amountB is zero");
   const coinA = mintShieldedToken(pad(32, "mn-amm:tokenA"), disclose(amountA), disclose(nonceA), right<ZswapCoinPublicKey, ContractAddress>(kernel.self()));

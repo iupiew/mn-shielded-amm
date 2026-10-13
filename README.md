@@ -330,8 +330,10 @@ node scripts/preprod-deploy.mjs --execute  # deploy → .spike/preprod-deploy.js
 ```
 
 Inputs: `.spike/agent-seed-export.json` (agent wallet seed) and
-`.spike/preprod-deploy-args.json` (`[ownerId, instanceSalt]`; `pools deploy
-<name> --network-id preprod --execute` generates both and registers the pool).
+`.spike/preprod-deploy-args.json` (`[ownerId, instanceSalt, faucetOpen]`,
+faucetOpen defaults to false — pass the CLI `--faucet-open` to mint-enable a
+demo pool; `pools deploy <name> --network-id preprod --execute` generates both
+and registers the pool).
 Proof server defaults to hosted ProofStation (`api-preprod.1am.xyz`), overridable
 via `AMM_PROOF_SERVER`.
 
@@ -358,6 +360,10 @@ address-scoped and finish in seconds.
 `api/src/amm/preprod.ts` points here, so `--network-id preprod` needs no
 `--contract`). Supersedes `4b9ebca3…` (gated-faucet) and `5fceafdf…`
 (abandoned toolchain mismatch).
+**Stale since M3:** that pool predates the `faucetOpen` constructor flag, so
+the repo's recompiled `managed/pool` artifacts no longer match it — redeploy
+(`pools deploy <name> --network-id preprod --faucet-open --execute`, then
+re-seed and update `DEFAULT_PREPROD_CONTRACT`) to use preprod again.
 
 **Wallet:** `mn-amm-agent` (seed in `.spike/`, unshielded
 `mn_addr_preprod1x9cq…`). Check funds: `mn balance --network preprod --wallet
@@ -381,10 +387,12 @@ seed → faucet → swap A→B 10,000 → 9,871 → swap B→A 10,000 → 10,068
 exact, final reserves 999,932 / 1,000,129, LP 1,000,000, and the old B→A
 `1010 Custom error: 103` regression did not reproduce.
 
-**The faucet is owner-gated since M7** (`ZOwn_assertOnlyOwner`): only the
-deployer's wallet can mint A/B tokens. Consequence: on a public deployment
-only the owner can ever acquire pool tokens (there is no transfer circuit), so
-a multi-user demo needs a capped/open faucet or a distribution circuit — a
+**The faucet is deploy-time gated since M3** (`_faucetOpen` constructor flag)
+**and pause-gated**: a pool mints only when deployed with the flag set
+(`--faucet-open`) and not paused; pause/unpause remain owner-only
+(`ZOwn_assertOnlyOwner`). Consequence: on a public deployment only people who
+can mint (or whoever holds coins) can trade — there is no transfer circuit, so
+a multi-user demo needs an open-faucet deploy or a distribution circuit — a
 deliberate future decision, not built.
 
 ## Development
@@ -420,7 +428,8 @@ npm run dev -w ui            # dashboard on :3000
   status are read straight from ledger state, no proving)
 - **Ledger:** `export ledger _coins: Map<Bytes<32>, QualifiedShieldedCoinInfo>`
   — one UTXO per token color; a token's reserve *is* its pot's value;
-  plus `export ledger _lpSupply: Uint<128>` (total LP minted)
+  plus `export ledger _lpSupply: Uint<128>` (total LP minted) and
+  `export ledger _faucetOpen: Boolean` (deploy-time mint gate, since M3)
 - **Token colors are derived in-circuit** from the contract address
   (`tokenType(pad(32,"mn-amm:tokenA"), kernel.self())`), so colors differ per
   deployment — never hardcode them
@@ -430,8 +439,8 @@ npm run dev -w ui            # dashboard on :3000
   with the default secret being the bytes of the shielded coin public key.
   `scripts/owner-args.mjs` derives it; override via `MN_PRIVATE_STATE_SECRET`
   only if you also change the derivation everywhere
-- **Pause:** `swap` and `seed` assert not-paused; `faucet` intentionally is not
-  gated (dev helper)
+- **Pause:** `swap`, `seed`, `addLiquidity`, `removeLiquidity`, and (since M3)
+  `faucet` all assert not-paused; only the owner can pause/unpause
 
 ---
 

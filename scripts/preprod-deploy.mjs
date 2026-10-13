@@ -13,14 +13,21 @@
  *
  * Inputs:
  *   .spike/agent-seed-export.json   { seedHex, mnemonic }
- *   .spike/preprod-deploy-args.json [ownerIdHex, instanceSaltHex]
+ *   .spike/preprod-deploy-args.json [ownerIdHex, instanceSaltHex, faucetOpen?]
+ *     (faucetOpen optional, default false = mint disabled on the new pool)
  *
  * Outputs:
  *   .spike/preprod-deploy.json      { contractAddress, txId, ... }
  *
  * Owner rule: ownerId = sha256(agentCoinPk || agentCoinPk) - the CLI agent
  * wallet owns pause/unpause. The browser wallet has a different coin public
- * key, so owner circuits fail there; faucet/seed/swap are OPEN.
+ * key, so owner circuits fail there. The faucet is open only when the
+ * constructor's faucetOpen flag is true (deploy with the CLI --faucet-open);
+ * it is closed by default since the M3 constructor flag landed.
+ *
+ * NOTE (M3): the constructor gained the faucetOpen parameter, so pools
+ * deployed from artifacts compiled before M3 no longer match this repo's
+ * artifacts — redeploy (and re-seed) to use the current managed/pool.
  *
  * PROOFSTATION_API_KEY: set if the hosted server requires auth
  * (request at support@1am.xyz). Try without first.
@@ -152,9 +159,12 @@ async function main() {
   if (!/^[0-9a-f]{64}$/.test(seedHex)) throw new Error('agent-seed-export.json seedHex must be 64 hex chars');
 
   const rawArgs = readJson(ARGS_PATH);
-  if (!Array.isArray(rawArgs) || rawArgs.length !== 2) throw new Error('preprod-deploy-args.json must be [ownerIdHex, instanceSaltHex]');
-  const constructorArgs = rawArgs.map((v) => hexToBytes(v));
-  for (const [i, arg] of constructorArgs.entries()) {
+  if (!Array.isArray(rawArgs) || rawArgs.length < 2 || rawArgs.length > 3) {
+    throw new Error('preprod-deploy-args.json must be [ownerIdHex, instanceSaltHex, faucetOpen?] (faucetOpen defaults to false)');
+  }
+  const faucetOpen = rawArgs.length === 3 ? Boolean(rawArgs[2]) : false;
+  const constructorArgs = [hexToBytes(rawArgs[0]), hexToBytes(rawArgs[1]), faucetOpen];
+  for (const [i, arg] of constructorArgs.slice(0, 2).entries()) {
     if (arg.length !== 32) throw new Error(`constructor arg ${i} must be 32 bytes, got ${arg.length}`);
   }
 
@@ -172,6 +182,7 @@ async function main() {
   console.log(`rpc:            ${RPC_URI}`);
   console.log(`ownerId:        ${rawArgs[0]}`);
   console.log(`instanceSalt:   ${rawArgs[1]}`);
+  console.log(`faucetOpen:     ${faucetOpen}`);
   console.log(`seed source:    ${SEED_PATH} (not printed)`);
 
   const { setNetworkId, getNetworkId } = await import('@midnight-ntwrk/midnight-js-network-id');

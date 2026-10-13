@@ -200,6 +200,7 @@ export type Ledger = {
     [Symbol.iterator](): Iterator<[Uint8Array, { nonce: Uint8Array, color: Uint8Array, value: bigint, mt_index: bigint }]>
   };
   readonly _lpSupply: bigint;
+  readonly _faucetOpen: boolean;
 }
 
 export type ContractReferenceLocations = any;
@@ -214,7 +215,8 @@ export declare class Contract<PS = any, W extends Witnesses<PS> = Witnesses<PS>>
   constructor(witnesses: W);
   initialState(context: __compactRuntime.ConstructorContext<PS>,
                ownerId_0: Uint8Array,
-               instanceSalt_0: Uint8Array): __compactRuntime.ConstructorResult<PS>;
+               instanceSalt_0: Uint8Array,
+               faucetOpen_0: boolean): __compactRuntime.ConstructorResult<PS>;
 }
 
 export declare function ledger(state: __compactRuntime.StateValue | __compactRuntime.ChargedState): Ledger;
