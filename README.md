@@ -406,7 +406,8 @@ npm run dev -w ui            # dashboard on :3000
   via docs but not yet battle-tested — kept visible (3 in `pool.compact`,
   1 in `node.ts`).
 - **Pinned dependencies** — no upgrades without an explicit decision
-  (exception in flight: a local patch of `wallet-sdk-shielded` 3.0.1).
+  (the one npm `override` and the `wallet-sdk-shielded` status are
+  documented in `docs/patches.md`).
 - **Mutations are dry-run by default** in the CLI; `--execute` is required.
 - **Never interrupt `compact compile`** — a killed run leaves partial/empty
   files in `managed/pool/keys/` (see Troubleshooting).
