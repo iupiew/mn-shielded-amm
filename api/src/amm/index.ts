@@ -9,3 +9,5 @@
 export * from './types.js';
 export * from './math.js';
 export { AmmApi, type AmmConnectOptions } from './api.js';
+export * from './registry-schema.js';
+export * from './local-registry.js';

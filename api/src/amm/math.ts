@@ -69,3 +69,76 @@ export function minAmountOut(amountOut: bigint, slippageBps: number | bigint): b
   }
   return (amountOut * (BPS_DENOMINATOR - bps)) / BPS_DENOMINATOR;
 }
+
+/** Integer square root (floor) via Newton's method — for the seed initialLp default. */
+export function integerSqrt(n: bigint): bigint {
+  if (n < 0n) throw new AmmError('ZERO_AMOUNT', `integerSqrt requires n >= 0, got ${n}`);
+  if (n < 2n) return n;
+  let x = n;
+  let y = (x + 1n) / 2n;
+  while (y < x) {
+    x = y;
+    y = (x + n / x) / 2n;
+  }
+  return x;
+}
+
+function assertLpOperands(amounts: readonly bigint[], reserves: readonly bigint[], supply: bigint): void {
+  if (amounts.some((a) => a <= 0n)) {
+    throw new AmmError('ZERO_AMOUNT', `LP amounts must be positive, got [${amounts.join(', ')}]`);
+  }
+  if (reserves.some((r) => r <= 0n) || supply <= 0n) {
+    throw new AmmError('NOT_SEEDED', `pool not seeded: reserves [${reserves.join(', ')}], supply ${supply}`);
+  }
+  if ([...amounts, ...reserves, supply].some((v) => v >= MAX_U64)) {
+    throw new AmmError('VALUE_TOO_LARGE', `operands must be < 2^64 (circuit bound): [${[...amounts, ...reserves, supply].join(', ')}]`);
+  }
+}
+
+/**
+ * Mirror of addLiquidity: lpOut = min(floor(amountA·S/rA), floor(amountB·S/rB)).
+ *
+ * @throws AmmError ZERO_AMOUNT / NOT_SEEDED / VALUE_TOO_LARGE (circuit bounds)
+ * @throws AmmError NO_OUTPUT if lpOut rounds to zero (circuit asserts > 0)
+ */
+export function getLpOut(
+  amountA: bigint,
+  amountB: bigint,
+  reserveA: bigint,
+  reserveB: bigint,
+  supply: bigint,
+): bigint {
+  assertLpOperands([amountA, amountB], [reserveA, reserveB], supply);
+  const qA = (amountA * supply) / reserveA;
+  const qB = (amountB * supply) / reserveB;
+  const lpOut = qA < qB ? qA : qB;
+  if (lpOut === 0n) {
+    throw new AmmError('NO_OUTPUT', `deposit [${amountA}, ${amountB}] is too small against reserves [${reserveA}, ${reserveB}] (lpOut rounds to zero)`);
+  }
+  return lpOut;
+}
+
+/**
+ * Mirror of removeLiquidity: aOut = floor(amountLp·rA/S), bOut = floor(amountLp·rB/S).
+ *
+ * @throws AmmError ZERO_AMOUNT / NOT_SEEDED / VALUE_TOO_LARGE (circuit bounds)
+ * @throws AmmError INSUFFICIENT_COIN if amountLp exceeds supply
+ * @throws AmmError NO_OUTPUT if either payout rounds to zero (circuit asserts > 0)
+ */
+export function getAmountsOut(
+  amountLp: bigint,
+  reserveA: bigint,
+  reserveB: bigint,
+  supply: bigint,
+): { aOut: bigint; bOut: bigint } {
+  assertLpOperands([amountLp], [reserveA, reserveB], supply);
+  if (amountLp > supply) {
+    throw new AmmError('INSUFFICIENT_COIN', `amountLp ${amountLp} exceeds LP supply ${supply}`);
+  }
+  const aOut = (amountLp * reserveA) / supply;
+  const bOut = (amountLp * reserveB) / supply;
+  if (aOut === 0n || bOut === 0n) {
+    throw new AmmError('NO_OUTPUT', `burn ${amountLp} of ${supply} is too small: payouts [${aOut}, ${bOut}] round to zero`);
+  }
+  return { aOut, bOut };
+}
