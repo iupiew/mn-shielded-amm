@@ -1,13 +1,24 @@
 # M3 design — LP share liquidity (`addLiquidity` / `removeLiquidity`)
 
-Status: **approved** (bootstrap = seed mints initial LP; full partial-amount
-support; `initialLp` = off-circuit `sqrt(a·b)` default). Implementation in
-progress.
+Status: **shipped** — this file is the original design record; the as-built
+implementation differs in a few places (see "As-built deltas" below) and lives
+in `contract/pool.compact` + `contract/test/pool.test.ts`.
 Verified facts below come from Kapa/docs for the pinned versions (compact
 language 0.23, compiler 0.31.1, midnight-js 4.1.1); every circuit construct
 additionally gets compile-validated before it is called done.
 
-## Current state
+## As-built deltas (vs. the design sketched here)
+
+- **Caller-supplied quotients:** `addLiquidity` takes `lpOut` (prover supplies
+  the quotient, range-checked in-circuit) plus `minLpOut`; `removeLiquidity`
+  takes `aOut`/`bOut` plus `minA`/`minB` — instead of the design's
+  min-computed-in-circuit sketch. Slippage protection is unchanged.
+- **No getters:** `getLpSupply`/`getLpColor` were dropped — LP supply and the
+  derived LP color are read straight from ledger state by `api/`.
+- **Seed initial LP:** as designed (see below); api computes
+  `sqrt(a·b)` off-circuit by default.
+
+## Current state (snapshot at design time — since shipped)
 
 - `seed(coinA, coinB)` creates both pots **without LP accounting** (devnet-only
   bootstrap; comment says it is to be replaced).
@@ -121,7 +132,8 @@ export circuit removeLiquidity(
 - `poolState` gains `lpSupply` + `lpColor` (read via new getters).
 - CLI: `mn-amm add` / `mn-amm remove` (dry-run default, `--execute`, `--json`,
   same exit codes; new error codes only if selection fails).
-- UI: out of scope for M3 (README status row updated; UI panel = M8).
+- UI: shipped (dashboard Liquidity tab — deposit/withdraw with slippage and
+  live LP balance).
 
 ## Verification plan
 

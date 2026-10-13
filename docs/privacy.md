@@ -1,7 +1,8 @@
 # Privacy model — what the chain actually sees
 
-> Verified in milestone **M1** against real preprod transactions, the contract
-> source, and the pinned documentation. If a contract or circuit change alters
+> Verified 2026-10-09 against real preprod transactions, the contract
+> source, and the pinned documentation; updated 2026-10-13 for the
+> `faucetOpen` deploy-time gate. If a contract or circuit change alters
 > any row below, update this file in the same PR.
 >
 > An earlier version of the README claimed *"the chain never sees amounts,
@@ -15,19 +16,20 @@
 | Thing | Where it's visible | How verified |
 |---|---|---|
 | Pool reserves (per-color pot values) | Contract ledger state `_coins` map | Read in `api/src/amm/api.ts` via `contractStateObservable`; also appear as literal constants in the published on-chain transcript |
-| Token colors | `_coins` map keys; derivable as `tokenType(pad(32, "mn-amm:tokenA"), contractAddr)` from the contract address alone | Contract source (derivation formula; since M4 no view circuit exposes them as a call) |
+| Token colors | `_coins` map keys; derivable as `tokenType(pad(32, "mn-amm:tokenA"), contractAddr)` from the contract address alone | Contract source (derivation formula; no view circuit exposes them as a call) |
 | Exact swap `amountIn` / `amountOut` / direction / timestamp | Reserve delta within the same tx; pre- and post-swap pot values are literal constants in the transcript | Decoded real tx: pot B 500,752 → 1,000,000 (+499,248 = the known `amountIn`), pot A 2,000,000 → 1,003,007 (−996,993); matches the 0.3% fee-on-input formula exactly |
 | Which pool, which circuit ran | Transcript actions list `contract` + `entry_point` (`swap`, `faucet`, `seed`, `pause`, `unpause`, `addLiquidity`, `removeLiquidity`) | All sampled txs |
 | Multiple pools (contract-per-pool) | Each deployment has its own color domain (colors embed the contract address), so a wallet holding coins from several pools leaks *which* pools it participates in — the color→pool mapping is public derivable — while amounts/values stay shielded per coin | Registry + derivation formula |
 | Faucet mints — color domain **and exact amount** | `shielded_mints` in transcript (e.g. domain `mn-amm:tokenA`, amount `1,000,000`) | Faucet txs |
 | Pause status | Ledger state `_isPaused` field | Contract source |
+| Faucet availability (`_faucetOpen`) | Exported ledger field, set once at deploy (`true` = anyone can mint) | Contract source; deploy-time flag |
 | Spent-coin nullifiers, received-coin commitments, transient coins | Zswap offer in the tx | Serialized offer inspection |
 | Fee amounts paid (DUST) | `dust_actions` → `DustSpend { v_fee, … }` | Intent dump |
 | `ownerId` | Contract ledger state; **derivable by anyone who knows a coin public key**: `sha256(pk ‖ pk)` | `scripts/owner-args.mjs` |
-| LP token color | `tokenType(pad(32, "mn-amm:lp"), contractAddr)` — derivable from the contract address alone, like A/B | Contract source (derivation formula; `lpColor` circuit exists only to mint, not as a call) |
-| Total LP supply (`_lpSupply`) | Exported ledger field; every seed/add/remove writes a **disclosed** delta | Contract source (M3); swap-reserve analog |
-| Exact `addLiquidity` deposit amounts / LP minted | Reserve A/B deltas and `_lpSupply` delta inside the same tx; LP `ShieldedMint` carries the disclosed amount | M3 circuit source; pattern matches swap |
-| Exact `removeLiquidity` burn / payouts | `ShieldedBurn` carries the disclosed LP amount; reserve A/B deltas give the payouts | M3 circuit source |
+| LP token color | `tokenType(pad(32, "mn-amm:lp"), contractAddr)` — derivable from the contract address alone, like A/B | Contract source (derivation formula; LP is minted inside seed/addLiquidity, not exposed as a call) |
+| Total LP supply (`_lpSupply`) | Exported ledger field; every seed/add/remove writes a **disclosed** delta | Contract source; swap-reserve analog |
+| Exact `addLiquidity` deposit amounts / LP minted | Reserve A/B deltas and `_lpSupply` delta inside the same tx; LP `ShieldedMint` carries the disclosed amount | Circuit source; pattern matches swap |
+| Exact `removeLiquidity` burn / payouts | `ShieldedBurn` carries the disclosed LP amount; reserve A/B deltas give the payouts | Circuit source |
 
 ## Hidden — not in any pool transaction
 
@@ -55,7 +57,7 @@
 5. **Contract-sent coins are only delivered to the caller:** `sendShielded` does
    not build ciphertexts for recipients other than the current caller, so their
    wallets won't detect the incoming coin (no identity leak, but a delivery
-   caveat relevant to M2).
+   caveat relevant if other parties are expected to receive coins).
 
 ## How this was verified
 
@@ -70,8 +72,8 @@
 - Pinned docs (Kapa MCP + docs site): visibility / `disclose()` semantics,
   `sendShielded` behavior.
 
-**Rule for new milestones:** M2 (partial-coin swap — change coins now appear
-in the trader's wallet, amounts still public) and M3 (liquidity — LP supply,
-mints, and burns added to the public surface, rows above) are done. Any future
-contract/circuit change must re-run the "public surface" checklist and update
-this file.
+**Rule for future changes:** any contract/circuit change must re-run the
+"public surface" checklist and update this file. The partial-coin swap (change
+coins now appear in the trader's wallet, amounts still public) and the LP
+liquidity work (LP supply, mints, and burns added to the public surface, rows
+above) are reflected in the tables.

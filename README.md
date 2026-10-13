@@ -60,7 +60,7 @@ never reimplement AMM math or tx flows.
 ```
 mn-amm/
 ├── contract/
-│   ├── pool.compact            # THE contract: faucet, seed, swap, pause, views
+│   ├── pool.compact            # THE contract: faucet, seed, swap, liquidity, pause
 │   ├── managed/pool/           # compiler output (keys/, zkir/, contract/) — committed
 │   ├── leaderboard.compact     # template legacy (unused by this app)
 │   └── src/                    # contract JS exports (legacy leaderboard + witnesses)
@@ -74,8 +74,9 @@ mn-amm/
 │   └── src/cli.ts              # mn-amm — arg parsing + output formatting only
 ├── ui/
 │   └── src/                    # React dashboard (App.tsx, tabs, lib/ thin client)
-└── scripts/
-    └── owner-args.mjs          # prints deploy --args (ownerId + instanceSalt)
+├── scripts/
+│   └── owner-args.mjs          # prints deploy --args (ownerId + salt + faucetOpen)
+└── docs/                       # privacy model, liquidity design, licenses, patches
 ```
 
 **Template legacy** (present but not part of the AMM): `leaderboard.compact`,
@@ -169,10 +170,12 @@ mn serve --approve-all --wallet devnet-main > /tmp/mn-serve.log 2>&1 &
 ### 5. Deploy the pool
 
 ```bash
-node scripts/owner-args.mjs       # prints: [[<ownerId ints>,<salt ints>]]
-# (requires mn serve; derives ownerId from your wallet's shielded public key)
+node scripts/owner-args.mjs --faucet-open
+# prints: [[<ownerId ints>,<salt ints>,true]]  (stderr: your pk + faucetOpen)
+# (requires mn serve; derives ownerId from your wallet's shielded public key;
+#  drop --faucet-open for a mint-disabled pool — see the faucet note below)
 
-node scripts/owner-args.mjs | xargs -I{} mn contract deploy \
+node scripts/owner-args.mjs --faucet-open | xargs -I{} mn contract deploy \
   --managed contract/managed/pool --wallet devnet-main --args '{}' --json
 # → {"address":"<64-hex>", ...}   takes ~1–4 min
 ```
@@ -224,15 +227,21 @@ mn-amm <command> [options]
   remove-liquidity <shares>       LP withdrawal; --execute submits
   pools list                      named pools from the registry file
   pools add <name> <contract>     register a pool (optional --network-id)
+  pools deploy <name>             deploy a pool (preprod via agent seed /
+                                  preprod-deploy.mjs; localnet via mn);
+                                  --faucet-open to mint-enable the new pool
   pools remove <name>             unregister a pool
 ```
 
 | Flag | Meaning |
 |---|---|
-| `--contract <hex>` | pool address — or `export AMM_CONTRACT=…` (required) |
+| `--contract <hex>` | pool address — or `export AMM_CONTRACT=…`, or `--pool <name>` |
 | `--pool <name>` | registered pool name from `pools.json` (overridden by `--contract`) |
+| `--network-id <id>` | `undeployed` (localnet, default) · `preprod` |
 | `--wallet <name>` | default `devnet-main` |
 | `--slippage-bps <n>` | 0–10000, default 0 |
+| `--salt <64-hex>` | `pools deploy`: instance salt (default: fresh random) |
+| `--faucet-open` | `pools deploy`: mint-enable the new pool (default: closed) |
 | `--execute` | **actually submit** — mutating commands are dry-runs by default |
 | `--json` | machine-readable output (bigints as decimal strings) |
 | `--no-sync` | read the wallet coin cache without refreshing it first |
@@ -257,7 +266,7 @@ npx mn-amm swap AtoB 2000000 --execute; echo $?
 npx mn-amm swap AtoB 1000000 --execute        # real swap (~2–4 min: proving + tx)
 ```
 
-### Multiple pools (contract-per-pool, M5)
+### Multiple pools (contract-per-pool)
 
 Each deployment is its own pool: token A/B/LP colors are derived from the
 contract address, so two deployments never share colors, reserves, LP supply,
@@ -342,7 +351,9 @@ via `AMM_PROOF_SERVER`.
 `BLOCKFROST_PROJECT_ID` (Midnight Preprod project, id starts with `nightpreprod`)
 for `api/`, the CLI, and `scripts/preprod-deploy.mjs` — the token may live in a
 gitignored `.env` at the repo root (`BLOCKFROST_PROJECT_ID=…`), which both the
-api and the deploy script read automatically — or override individual
+api and the deploy script read automatically — the **dashboard** additionally
+needs the same token as `VITE_MN_BLOCKFROST_PROJECT_ID` (vite only inlines
+`VITE_`-prefixed vars; keep both lines in `.env`) — or override individual
 endpoints with `AMM_INDEXER_URI` / `AMM_INDEXER_WS_URI` / `AMM_RPC_URI`. The
 `mn` wallet CLI needs the same: `mn config set indexer-ws
 wss://midnight-preprod.blockfrost.io/api/v0/ws?project_id=<token> --network
@@ -360,7 +371,8 @@ address-scoped and finish in seconds.
 `api/src/amm/preprod.ts` points here, so `--network-id preprod` needs no
 `--contract`). Supersedes `4b9ebca3…` (gated-faucet) and `5fceafdf…`
 (abandoned toolchain mismatch).
-**Stale since M3:** that pool predates the `faucetOpen` constructor flag, so
+**Stale after the faucet-gate change (2026-10-13):** that pool predates the
+`faucetOpen` constructor flag, so
 the repo's recompiled `managed/pool` artifacts no longer match it — redeploy
 (`pools deploy <name> --network-id preprod --faucet-open --execute`, then
 re-seed and update `DEFAULT_PREPROD_CONTRACT`) to use preprod again.
@@ -387,7 +399,12 @@ seed → faucet → swap A→B 10,000 → 9,871 → swap B→A 10,000 → 10,068
 exact, final reserves 999,932 / 1,000,129, LP 1,000,000, and the old B→A
 `1010 Custom error: 103` regression did not reproduce.
 
-**The faucet is deploy-time gated since M3** (`_faucetOpen` constructor flag)
+**Verified end-to-end via the dashboard (2026-10-13, open-faucet build):**
+wallet connect (1AM) → mint → swap A→B 100,000 → 88,078
+(tx `005b4533310a…82ac9c11`) — the pre-gate pool still serves the browser
+flow end-to-end.
+
+**The faucet is deploy-time gated** (`_faucetOpen` constructor flag)
 **and pause-gated**: a pool mints only when deployed with the flag set
 (`--faucet-open`) and not paused; pause/unpause remain owner-only
 (`ZOwn_assertOnlyOwner`). Consequence: on a public deployment only people who
@@ -402,7 +419,7 @@ npm run build                # contract (tsc) + api (tsc + copy managed/)
 npm run compile:pool -w contract   # recompile pool.compact — ONLY after editing it
 npm run typecheck -w api     # also: -w ui, -w mn-amm-cli
 npm test -w api              # 37 tests (math, quotes, errors, local registry)
-npm test -w contract         # 23 tests
+npm test -w contract         # 38 tests (15 pool circuit + 23 template)
 npm run dev -w ui            # dashboard on :3000
 ```
 
@@ -412,7 +429,7 @@ npm run dev -w ui            # dashboard on :3000
   `AmmApi` first and get wired into both frontends.
 - **`// UNVERIFIED:` markers** flag Compact/SDK constructs that were confirmed
   via docs but not yet battle-tested — kept visible (3 in `pool.compact`,
-  1 in `node.ts`).
+  3 in `browser.ts`, 1 in `node.ts`, 1 in `preprod.ts`).
 - **Pinned dependencies** — no upgrades without an explicit decision
   (the one npm `override` and the `wallet-sdk-shielded` status are
   documented in `docs/patches.md`).
@@ -423,13 +440,13 @@ npm run dev -w ui            # dashboard on :3000
 ### Contract at a glance (`contract/pool.compact`)
 
 - **Circuits:** `faucet` · `seed` · `swap` · `addLiquidity` ·
-  `removeLiquidity` · `pause` · `unpause` (7 total; since M4 the former
-  `get*` view circuits are gone — reserves, colors, LP supply, and pause
-  status are read straight from ledger state, no proving)
+  `removeLiquidity` · `pause` · `unpause` (7 total; the former
+  `get*` view circuits were replaced by ledger reads — reserves, colors,
+  LP supply, and pause status are read straight from state, no proving)
 - **Ledger:** `export ledger _coins: Map<Bytes<32>, QualifiedShieldedCoinInfo>`
   — one UTXO per token color; a token's reserve *is* its pot's value;
   plus `export ledger _lpSupply: Uint<128>` (total LP minted) and
-  `export ledger _faucetOpen: Boolean` (deploy-time mint gate, since M3)
+  `export ledger _faucetOpen: Boolean` (deploy-time mint gate)
 - **Token colors are derived in-circuit** from the contract address
   (`tokenType(pad(32,"mn-amm:tokenA"), kernel.self())`), so colors differ per
   deployment — never hardcode them
@@ -439,7 +456,7 @@ npm run dev -w ui            # dashboard on :3000
   with the default secret being the bytes of the shielded coin public key.
   `scripts/owner-args.mjs` derives it; override via `MN_PRIVATE_STATE_SECRET`
   only if you also change the derivation everywhere
-- **Pause:** `swap`, `seed`, `addLiquidity`, `removeLiquidity`, and (since M3)
+- **Pause:** `swap`, `seed`, `addLiquidity`, `removeLiquidity`, and
   `faucet` all assert not-paused; only the owner can pause/unpause
 
 ---
@@ -449,13 +466,12 @@ npm run dev -w ui            # dashboard on :3000
 | Symptom | Cause & fix |
 |---|---|
 | Everything hangs; `API-WS … 1006`; `StorageOutOfSpace(481, 512)` in `docker logs node` | **Host disk < 512 MB free.** The node won't start. Free ≥ 1 GB (`docker rm` old exited containers, `npm cache clean --force`), node restarts itself |
-| `ENOENT … keys/seed.verifier` (or any missing key file) | **A `compact compile` run was interrupted.** Never kill it mid-run. Fix: `npm run compile:pool -w contract` (runs to completion, ~1–2 min), then `npm run build` |
+| `ENOENT … keys/seed.verifier` (or any missing key file) | **A `compact compile` run was interrupted.** Never kill it mid-run (~25 min: 7 circuits, key generation dominates). Fix: `npm run compile:pool -w contract`, then `npm run build` |
 | CLI/UI hang forever on connect, no error | **Wrong contract address** — a nonexistent address never emits state. Verify: `mn contract state --address $AMM_CONTRACT --managed contract/managed/pool` |
 | UI shows stale/old coins, or `INSUFFICIENT_COIN` with values that don't exist | **Wallet cache survives chain resets.** `mn cache clear --network undeployed --wallet devnet-main`, then `mn balance` to resync |
 | `mn serve unreachable at ws://127.0.0.1:9932` | Start it: `mn serve --approve-all --wallet devnet-main &`. To stop it, kill **by PID** (`pgrep -af '[m]n serve'` — brackets avoid matching your own shell) — a bare `pkill -f serve` can kill the shell you're typing in |
 | CLI/UI suddenly fails with `Insufficient Funds: could not balance dust` (even though `mn dust status` shows plenty) | `mn serve` outlived a chain outage / node restart with stale wallet state — restart it **by PID**, wait for `ws://127.0.0.1:9932`, retry |
 | Swap fails / proofs die mid-run | **Proof server out of memory** (swap fans out ~8 concurrent proofs, needs ≈2 GB free): `docker restart proof-server` |
-| `isPaused` / `pool-state` slow in the CLI | `isPaused()` is a *submitted view* — every call waits for tx inclusion (~24 s). The dashboard reads it once at connect and never re-polls it |
 | `mn localnet down` “ate” my deployment | By design: `down` wipes chain **and** undeployed wallet cache → re-run bootstrap steps 2–7. `mn localnet stop` only stops containers (state preserved) |
 
 ---
@@ -469,16 +485,19 @@ the CLI with server-side policy → strategy interface + runner (DCA,
 rebalance; simulation mode, idempotent execution, kill switch) → strategy
 dashboard in the UI → live demo (two agents, one policy-blocked trade, halt).
 
-**Contract:** LP share circuits shipped (M3); view circuits replaced by
-ledger reads (M4); multi-pool via contract-per-pool registry (M5); faucet
-owner-gated and preprod redeployed (M7); remaining work is hardening
-against the `UNVERIFIED` markers.
+**Contract:** LP share circuits live; view circuits replaced by ledger
+reads; multi-pool via contract-per-pool registry; deploy-time faucet gate;
+remaining work is hardening against the `UNVERIFIED` markers, plus a
+preprod redeploy of the stale pool above.
 
-**Housekeeping:** remove leaderboard template leftovers, un-pin the
-`wallet-sdk-shielded` 3.0.1 patch once 3.0.2 is adopted.
+**Housekeeping:** remove the leaderboard template leftovers (tracked for the
+release pass); `wallet-sdk-shielded` — no local patch exists in this repo,
+see `docs/patches.md`.
 
 ---
 
 ## License
 
-See [LICENSE](./LICENSE).
+Apache-2.0 — see [LICENSE](./LICENSE). Dependency licenses (and the few
+GPL-only transitive packages, never shipped to browsers) are inventoried in
+[`docs/dependencies.md`](./docs/dependencies.md).

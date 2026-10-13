@@ -6,7 +6,8 @@ mocked, and what remains open.
 
 **Status:** preprod deploy ✅ · UI Connect flow ✅ (typecheck + build) ·
 automated E2E against the deployed address ✅ (mock connector) ·
-live 1AM extension run ⏳ (see [Open items](#open-items)).
+live 1AM extension run ✅ (2026-10-13: connect → mint → swap
+100,000 A→B → 88,078, tx `005b4533310a…82ac9c11`).
 
 ---
 
@@ -113,15 +114,9 @@ exact minted coin, asserting balances/reserves moved on the deployed address.
 
 ## Open items
 
-- **Live 1AM extension run** — manual: install 1AM, fund on preprod, click
-  Connect in the UI. Earlier attempt stalled on a pending connection popup
-  (wallet-side state); headless automation of the extension is out of scope.
-- **Indexer CORS from a browser origin** — assumed open (the Midnight indexer
-  is consumed by browser dapps; the localnet bridge never exercised this).
-  Not yet observed failing in E2E.
-- **`isPaused` inside `swap()`** — extra ~24 s per swap; a pause cache in
-  `AmmApi` would remove it, deferred to avoid touching the verified api layer
-  mid-quest.
+- ~~**Live 1AM extension run**~~ — done 2026-10-13 (connect → mint → swap,
+  tx `005b4533310a…82ac9c11`); that run also exercised the indexer from a
+  browser origin, so **CORS works** in practice.
 - **Vault persistence** — in-memory by design (connector has no coin
   enumeration); survives neither reload nor second tab.
 

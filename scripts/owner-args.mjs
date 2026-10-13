@@ -9,10 +9,11 @@
  *                   owner check with the default private-state secret rule:
  *                   secretKey = bytes of the shielded coin public key)
  *   instanceSalt = 32 fresh random bytes
+ *   faucetOpen   = true with --faucet-open (or AMM_FAUCET_OPEN=1), else false
  *
  * Usage (with `mn serve` running):
- *   node scripts/owner-args.mjs
- *   node scripts/owner-args.mjs | xargs -0 true  # just run it and copy the output
+ *   node scripts/owner-args.mjs                  # gated pool (mint disabled)
+ *   node scripts/owner-args.mjs --faucet-open    # demo pool (anyone can mint)
  *
  * Then:
  *   mn contract deploy --managed contract/managed/pool --wallet devnet-main \
@@ -24,6 +25,8 @@
 import { createHash, randomBytes } from 'node:crypto';
 
 const RPC = process.env.MN_SERVE_URL ?? 'ws://127.0.0.1:9932';
+const faucetOpen =
+  process.argv.includes('--faucet-open') || process.env.AMM_FAUCET_OPEN === '1';
 
 const ws = new WebSocket(RPC);
 const timer = setTimeout(() => {
@@ -47,7 +50,8 @@ ws.addEventListener('message', (event) => {
   const ownerId = [...createHash('sha256').update(pk).update(pk).digest()];
   const instanceSalt = [...randomBytes(32)];
   console.error(`shielded coin public key: ${pkHex}`);
-  console.log(JSON.stringify([ownerId, instanceSalt]));
+  console.error(`faucetOpen: ${faucetOpen}`);
+  console.log(JSON.stringify([ownerId, instanceSalt, faucetOpen]));
   ws.close();
   process.exit(0);
 });

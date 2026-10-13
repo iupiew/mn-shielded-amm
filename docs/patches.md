@@ -41,4 +41,4 @@ An earlier README revision stated "exception in flight: a local patch of
   patch of 3.0.1 would have targeted — i.e. the situation the old README
   described is resolved upstream, no patch needed or present.
 
-The stale claim was removed from the README in the M2 licensing pass.
+The stale claim was removed from the README in the license-inventory pass.

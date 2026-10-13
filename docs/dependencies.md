@@ -81,4 +81,4 @@ Keep **Apache-2.0** (already in `LICENSE`): it matches the Midnight
 ecosystem (every Midnight SDK package is Apache-2.0), the template this repo
 grew from, and the existing SPDX headers in contribution docs. Adding
 `"license": "Apache-2.0"` to the five workspace `package.json` files was
-proposed with the M2 report and awaits approval.
+proposed with the release-readiness report and awaits approval.
