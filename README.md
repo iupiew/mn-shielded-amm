@@ -3,40 +3,42 @@
 A fully **shielded constant-product AMM** (think Uniswap-lite) built on the
 [Midnight Network](https://midnight.network). Two devnet test tokens, a 0.3% swap
 fee that stays in the pool, and every reserve change proven with zero-knowledge
-circuits — the chain never sees amounts, colors, or who traded.
+circuits. Trader identities, balances, and coin contents stay private — but pool
+reserves, swap amounts, and token colors are **public** ledger state. See
+[docs/privacy.md](docs/privacy.md) for the verified visibility model.
 
 Ships as four npm workspaces: a **Compact contract**, a shared **TypeScript API**,
 a thin **CLI**, and a **React dashboard**.
 
 | Feature | Status |
 |---|---|
-| Faucet · seed · swap · pause/unpause, via CLI **and** UI | ✅ verified on local devnet |
+| Faucet · seed · swap · pause/unpause, via CLI **and** UI | ✅ local devnet + preprod |
 | Live quotes (0.3% fee, slippage tolerance in bps) | ✅ |
 | Dry-run-first safety (`--execute` to submit, `--json` output) | ✅ |
-| Add/remove liquidity (LP share circuits) | 🔜 planned (API stubs return `NOT_IMPLEMENTED`) |
+| Add/remove liquidity (LP share circuits) | ✅ verified on local devnet |
 | Agent support (MCP server, policies, strategies) | 🔜 phase 2 |
 
-> **Local-devnet only.** Everything below runs against an ephemeral local chain.
-> The chain, the deployed pool, and (on `localnet down`) the wallet cache are
-> disposable by design.
+> **Local devnet by default; preprod for real runs.** The quickstart below runs
+> against an ephemeral local chain — the chain, the deployed pool, and (on
+> `localnet down`) the wallet cache are disposable by design. The CLI also runs
+> against Cardano Preprod with `--network-id preprod`; the dashboard is
+> preprod-only (deployed contract address + network in `ui/src/lib/config.ts`).
 
 ---
 
 ## Architecture
 
 ```
-┌──────────────┐   ┌──────────────┐
-│  cli/ (thin) │   │ ui/ (React)  │  ← browser
-│   mn-amm     │   │  dashboard   │
-└──────┬───────┘   └──────┬───────┘
-       │                  │ HTTP (vite dev middleware)
-       │           ┌──────▼───────┐
-       │           │ ui/bridge.ts │  local API bridge: serializes every
-       │           └──────┬───────┘  call behind one queue, caches pause state
-       │                  │
+┌──────────────┐   ┌────────────────────┐
+│  cli/ (thin) │   │ ui/ (React)        │  ← browser
+│   mn-amm     │   │  dashboard         │
+└──────┬───────┘   └──────┬─────────────┘
+       │                  │ in-browser BrowserAmm (DApp connector):
+       │                  │ 1AM/Lace · indexer · proof server
        └──────────►┌──────▼──────────────────┐
                    │ api/  (ALL logic lives) │  AmmApi: poolState · quote ·
                    │  createNodeAmm()        │  swap · faucet · seed · pause
+                   │  createBrowserAmm()     │
                    └──────┬──────────────────┘
                           │
         ┌─────────────────┼─────────────────────┐
@@ -48,7 +50,7 @@ a thin **CLI**, and a **React dashboard**.
 ```
 
 **Rule of the repo:** all business logic lives in `api/`. The CLI and the UI
-bridge are thin adapters that parse arguments / HTTP and format output — they
+are thin adapters that parse arguments / UI events and format output — they
 never reimplement AMM math or tx flows.
 
 ---
@@ -67,12 +69,11 @@ mn-amm/
 │       ├── api.ts              # AmmApi: poolState, quote, swap, faucet, seed, pause…
 │       ├── node.ts             # createNodeAmm(): node transport, wallet, private state
 │       ├── math.ts             # constant-product math (division-free swap check)
-│       └── types.ts            # AmmError codes (PAUSED, NO_EXACT_COIN, …)
+│       └── types.ts            # AmmError codes (PAUSED, INSUFFICIENT_COIN, …)
 ├── cli/
 │   └── src/cli.ts              # mn-amm — arg parsing + output formatting only
 ├── ui/
-│   ├── bridge.ts               # vite dev middleware exposing api/ over /api/*
-│   └── src/                    # React dashboard (App.tsx, lib/api.ts typed client)
+│   └── src/                    # React dashboard (App.tsx, tabs, lib/ thin client)
 └── scripts/
     └── owner-args.mjs          # prints deploy --args (ownerId + instanceSalt)
 ```
@@ -110,17 +111,19 @@ npm install && npm run build      # workspaces + api
 mn localnet up                    # chain (node, indexer, proof-server)
 mn serve --approve-all --wallet devnet-main &   # wallet RPC on :9932
 
-export AMM_CONTRACT=<address>     # printed by deploy; skip if using the
-                                  # baked-in default in ui/bridge.ts
+export AMM_CONTRACT=<address>     # printed by deploy (CLI default when set)
 
 npx mn-amm pool-state             # sanity check (first call: ~30–90 s)
 npx mn-amm quote AtoB 100000      # live price quote
 
-npm run dev -w ui                 # dashboard + API bridge → http://localhost:3000
+npm run dev -w ui                 # dashboard → http://localhost:3000 (preprod)
 ```
 
 Open **http://localhost:3000** — pool reserves, wallet balance, live quote,
-swap preview, and dev tools (faucet / seed / pause) are all on one page.
+swap preview, and dev tools (faucet / seed / pause) are all on one page. Note:
+the dashboard always talks to **preprod** (its own deployed pool + wallet, see
+[UI](#ui-httplocalhost3000)) — it does not mirror the localnet chain used by the
+CLI steps above.
 
 > Running services: `mn localnet status` · `pgrep -af '[m]n serve'` · `ss -ltn | grep -E '3000|9932'`
 
@@ -158,7 +161,7 @@ mn dust status                              # "Dust Available: yes"
 
 ```bash
 mn serve --approve-all --wallet devnet-main > /tmp/mn-serve.log 2>&1 &
-# ws://127.0.0.1:9932 — the CLI and the UI bridge both require it
+# ws://127.0.0.1:9932 — required by the CLI (node wallet RPC)
 ```
 
 `--approve-all` auto-approves reads *and* writes (fine for a throwaway devnet).
@@ -193,7 +196,7 @@ npx mn-amm seed --mint --execute --json
 
 ```bash
 npx mn-amm pool-state             # reserves, colors, pause flag
-npm run dev -w ui                 # → http://localhost:3000
+npm run dev -w ui                 # → http://localhost:3000 (dashboard = preprod, not this localnet)
 ```
 
 **After `mn localnet down`** (chain state + wallet cache wiped) repeat steps 2–7.
@@ -212,13 +215,22 @@ mn-amm <command> [options]
   swap <side> <amount>            quote + coin plan; --execute submits
   faucet [--amount-a N] [--amount-b N]
                                   mint devnet coins; --execute submits
-  seed --mint                     faucet(1M,1M) then seed; --execute submits
+  seed --mint [--amount-a N --amount-b N]
+                                  faucet then seed (mints initial LP supply,
+                                  default floor(sqrt(a*b))); --execute submits
   pause | unpause                 admin pause control; --execute submits
+  add-liquidity <amountA> <amountB>
+                                  LP deposit; --execute submits
+  remove-liquidity <shares>       LP withdrawal; --execute submits
+  pools list                      named pools from the registry file
+  pools add <name> <contract>     register a pool (optional --network-id)
+  pools remove <name>             unregister a pool
 ```
 
 | Flag | Meaning |
 |---|---|
 | `--contract <hex>` | pool address — or `export AMM_CONTRACT=…` (required) |
+| `--pool <name>` | registered pool name from `pools.json` (overridden by `--contract`) |
 | `--wallet <name>` | default `devnet-main` |
 | `--slippage-bps <n>` | 0–10000, default 0 |
 | `--execute` | **actually submit** — mutating commands are dry-runs by default |
@@ -226,7 +238,7 @@ mn-amm <command> [options]
 | `--no-sync` | read the wallet coin cache without refreshing it first |
 
 **Exit codes:** `0` ok · `1` internal error · `2` usage error · `3` AMM error
-(`error.code` in `--json`, e.g. `PAUSED`, `NO_EXACT_COIN`).
+(`error.code` in `--json`, e.g. `PAUSED`, `INSUFFICIENT_COIN`).
 
 ```bash
 export AMM_CONTRACT=bf823a56c3b5a231c168ba39ffc46a80b39e3195709a88eb594cc011899eccc1
@@ -238,48 +250,142 @@ npx mn-amm quote AtoB 100000 --json
 npx mn-amm faucet --execute --json            # mint 1,000,000 A + 1,000,000 B
 
 npx mn-amm swap AtoB 123456 --json             # dry-run still succeeds (rc 0) but
-#   "exactCoinAvailable":false, "availableValues":["1000000"]
-npx mn-amm swap AtoB 123456 --execute; echo $?
-# → 3   {"error":{"code":"NO_EXACT_COIN","message":"… available values: [1000000]"}}
+#   "spendableCoinAvailable":true, "availableValues":["1000000"]  → partial swap
+npx mn-amm swap AtoB 2000000 --execute; echo $?
+# → 3   {"error":{"code":"INSUFFICIENT_COIN","message":"… available values: [1000000]"}}
 
 npx mn-amm swap AtoB 1000000 --execute        # real swap (~2–4 min: proving + tx)
 ```
 
-### The exact-coin rule
+### Multiple pools (contract-per-pool, M5)
 
-`swap` consumes an **entire coin** in-circuit — `amountIn` must equal one of
-your existing pool-color coin values exactly. The **dry-run never fails** on a
-missing coin: it reports `exactCoinAvailable:false` plus `availableValues` and
-exits 0. Only `--execute` raises exit code `3` (`NO_EXACT_COIN`).
-Want to swap 100,000? Mint split amounts with `faucet --amount-a 100000`
-first, or swap a full coin value.
+Each deployment is its own pool: token A/B/LP colors are derived from the
+contract address, so two deployments never share colors, reserves, LP supply,
+or pause state. Register pools by name in `pools.json` (`AMM_POOLS_FILE`
+overrides the location) and target them with `--pool`:
+
+```bash
+npx mn-amm pools add main 9264c59e85cb… --json
+npx mn-amm pools add alt  33616af49d75… --network-id undeployed --json
+
+npx mn-amm --pool main pool-state --json      # reserves 1,010,000/990,129
+npx mn-amm --pool alt  pool-state --json      # reserves 1,000,000/1,000,000
+npx mn-amm --pool alt  seed --mint --execute  # seed the second pool
+```
+
+One wallet can hold coins from many pools at once (they are just coins with
+different colors); `balance` splits the connected pool's coins and buckets
+everything else under `otherCoins`. There is no cross-pool swap — routing
+would need the router/factory design (option B), deliberately not built.
+
+### The spendable-coin rule
+
+`swap` needs **one pool-color coin with `value >= amountIn`** — it does *not*
+have to match exactly. The circuit swaps `amountIn` and returns the remainder
+to you as change in the same transaction. The **dry-run never fails** on a
+missing coin: it reports `spendableCoinAvailable` plus `availableValues` and
+exits 0. Only `--execute` raises exit code `3` (`INSUFFICIENT_COIN`), when no
+single coin covers `amountIn`.
 
 ---
 
 ## UI (http://localhost:3000)
 
-| Panel | What it does |
+The dashboard is a thin client over `api/`'s `createBrowserAmm()` — it runs
+entirely in the browser against **preprod**: no bridge, no local daemon, no
+private keys in the page. Connect a Midnight DApp-connector wallet (1AM
+preferred, Lace accepted), pick a pool, and every mutation previews before it
+submits.
+
+| Tab / panel | What it does |
 |---|---|
-| **Pool** | reserves, prices, token colors, live/paused badge, refresh |
-| **Wallet balance** | totals + per-coin chips; *Sync & refresh* re-reads the chain |
-| **Swap** | debounced live quote, slippage, preview → explicit *Execute swap* |
-| **Dev tools** | faucet (mint), seed, pause/unpause — every mutation previews first |
+| **Swap** | pool stats (reserves, prices, live/paused/unseeded badge), wallet balances, debounced live quote, slippage presets, preview → confirm |
+| **Pools** | pool registry list + switch, add/remove browser-local pools, pause/unpause (owner only) |
+| **Liquidity** | add/remove liquidity with live quotes + slippage, preview → confirm |
+| **Mint** | faucet (mint A/B coins) + seed the pool as a two-tx flow, preview → confirm |
+| **Activity** | every action, tx id and raw error lands here (the `--json` equivalent) |
 
-**How it talks to the chain:** the browser never holds keys. `ui/bridge.ts` is a
-vite dev-server middleware exposing `api/` over `/api/*` in the same process —
-no CORS, no extra daemon. All bridge calls run behind a single queue (wallet
-coin selection, proofs and submissions must never interleave), and the paused
-flag is cached (60 s TTL) because `isPaused()` is a submitted view (~24 s).
+**How it talks to the chain:** the connector hands the page the wallet's
+shielded addresses; contract reads go to the indexer, proofs to a proof server
+(`VITE_MN_PROVER_URI`, e.g. local `http://127.0.0.1:6300`, dodges hosted 524
+timeouts on the big proving keys), submissions through the wallet. Coins live
+in a per-pool localStorage vault (`mn-amm:vault:…`) because the connector
+exposes no coin enumeration.
 
-**Bridge env** (shell env of `npm run dev`): `AMM_CONTRACT`, `AMM_WALLET`,
-`AMM_NETWORK_ID` — defaults: baked-in devnet address, `devnet-main`,
-`undeployed`.
-
-**Recovered from a bridge error?** `curl -X POST localhost:3000/api/reconnect`
-or restart the dev server — a failed startup leaves `health.state=error`, which
-blocks the UI even after the underlying problem is fixed.
+**Run it:** `npm run dev -w ui` → http://localhost:3000 (`scripts/sync-ui-zk.mjs`
+first syncs zk artifacts + `pools.json` into `ui/public`). Override the pool
+with `VITE_MN_CONTRACT_ADDRESS`.
 
 ---
+
+## Preprod
+
+Redeploy is **mandatory** after any contract change — the toolchain
+(compact 0.31.1 artifacts) is incompatible with older deploys, and the
+original `5fceafdf…` pool is abandoned.
+
+```bash
+node scripts/preprod-deploy.mjs            # dry-run: derives keys, checks artifacts
+node scripts/preprod-deploy.mjs --execute  # deploy → .spike/preprod-deploy.json
+```
+
+Inputs: `.spike/agent-seed-export.json` (agent wallet seed) and
+`.spike/preprod-deploy-args.json` (`[ownerId, instanceSalt]`; `pools deploy
+<name> --network-id preprod --execute` generates both and registers the pool).
+Proof server defaults to hosted ProofStation (`api-preprod.1am.xyz`), overridable
+via `AMM_PROOF_SERVER`.
+
+**Preprod endpoints moved to Blockfrost (2026-10-09):** Midnight decommissioned
+`indexer.preprod.midnight.network` and `rpc.preprod.midnight.network`. Set
+`BLOCKFROST_PROJECT_ID` (Midnight Preprod project, id starts with `nightpreprod`)
+for `api/`, the CLI, and `scripts/preprod-deploy.mjs` — the token may live in a
+gitignored `.env` at the repo root (`BLOCKFROST_PROJECT_ID=…`), which both the
+api and the deploy script read automatically — or override individual
+endpoints with `AMM_INDEXER_URI` / `AMM_INDEXER_WS_URI` / `AMM_RPC_URI`. The
+`mn` wallet CLI needs the same: `mn config set indexer-ws
+wss://midnight-preprod.blockfrost.io/api/v0/ws?project_id=<token> --network
+preprod`, `mn config set node wss://rpc.midnight-preprod.blockfrost.io?project_id=<token>
+--network preprod`, then `mn cache clear --network preprod` (saved sync state
+against the old indexer is not portable; the first re-sync takes 1h+). Note: a **first full sync from genesis replays all
+~1.65M dust events** (≈100 evt/s on the Blockfrost free tier ⇒ several hours);
+checkpoints persist across restarts, so `mn serve` restarts resume where they
+left off. Unshielded balance checks (`mn balance` without `--shielded`) are
+address-scoped and finish in seconds.
+
+**Current pool:** `2f557cf5ff4bb0220abd42669bf63ad73ca5e00bffdf5d5e41acd2a5a1634712`
+(open-faucet build, deployed 2026-10-10 via `pools deploy preprod-open
+--network-id preprod --execute`; `DEFAULT_PREPROD_CONTRACT` in
+`api/src/amm/preprod.ts` points here, so `--network-id preprod` needs no
+`--contract`). Supersedes `4b9ebca3…` (gated-faucet) and `5fceafdf…`
+(abandoned toolchain mismatch).
+
+**Wallet:** `mn-amm-agent` (seed in `.spike/`, unshielded
+`mn_addr_preprod1x9cq…`). Check funds: `mn balance --network preprod --wallet
+mn-amm-agent --shielded` and `mn dust status --network preprod --wallet
+mn-amm-agent`.
+
+**Operations:** the agent wallet server must be started on its own
+network — `mn serve --port 9933 --wallet mn-amm-agent --network preprod`
+(a serve without `--network` comes up `undeployed` and both balance and
+submit fail). Preprod commands default to the hosted ProofStation for
+`/prove`; when it returns `524` on the big proving keys, point
+`AMM_PROOF_SERVER=http://127.0.0.1:6300` at the local proof server (SRS
+params k10–17 mounted) and keep `AMM_BALANCE_SERVER=https://api-preprod.1am.xyz`
+(`/balance-only` sponsorship is hosted-only — the local server 404s it).
+`balanceTx` retries the serve balance 4×15s to ride out DUST UTXOs locked by
+the previous tx before it falls back to the sponsor (whose stale dust state
+earns `1010 Custom error: 170 InvalidDustSpendProof`).
+
+**Verified end-to-end on preprod (2026-10-09):** faucet (owner gate) →
+seed → faucet → swap A→B 10,000 → 9,871 → swap B→A 10,000 → 10,068 — all
+exact, final reserves 999,932 / 1,000,129, LP 1,000,000, and the old B→A
+`1010 Custom error: 103` regression did not reproduce.
+
+**The faucet is owner-gated since M7** (`ZOwn_assertOnlyOwner`): only the
+deployer's wallet can mint A/B tokens. Consequence: on a public deployment
+only the owner can ever acquire pool tokens (there is no transfer circuit), so
+a multi-user demo needs a capped/open faucet or a distribution circuit — a
+deliberate future decision, not built.
 
 ## Development
 
@@ -287,9 +393,9 @@ blocks the UI even after the underlying problem is fixed.
 npm run build                # contract (tsc) + api (tsc + copy managed/)
 npm run compile:pool -w contract   # recompile pool.compact — ONLY after editing it
 npm run typecheck -w api     # also: -w ui, -w mn-amm-cli
-npm test -w api              # 20 tests (math, quotes, errors)
+npm test -w api              # 37 tests (math, quotes, errors, local registry)
 npm test -w contract         # 23 tests
-npm run dev -w ui            # dashboard + bridge on :3000
+npm run dev -w ui            # dashboard on :3000
 ```
 
 **Conventions in this repo**
@@ -298,7 +404,7 @@ npm run dev -w ui            # dashboard + bridge on :3000
   `AmmApi` first and get wired into both frontends.
 - **`// UNVERIFIED:` markers** flag Compact/SDK constructs that were confirmed
   via docs but not yet battle-tested — kept visible (3 in `pool.compact`,
-  2 in `node.ts`).
+  1 in `node.ts`).
 - **Pinned dependencies** — no upgrades without an explicit decision
   (exception in flight: a local patch of `wallet-sdk-shielded` 3.0.1).
 - **Mutations are dry-run by default** in the CLI; `--execute` is required.
@@ -307,10 +413,13 @@ npm run dev -w ui            # dashboard + bridge on :3000
 
 ### Contract at a glance (`contract/pool.compact`)
 
-- **Circuits:** `faucet` · `seed` · `swap` · `pause` · `unpause` ·
-  `getColors` · `getReserves` · `getIsPaused`
+- **Circuits:** `faucet` · `seed` · `swap` · `addLiquidity` ·
+  `removeLiquidity` · `pause` · `unpause` (7 total; since M4 the former
+  `get*` view circuits are gone — reserves, colors, LP supply, and pause
+  status are read straight from ledger state, no proving)
 - **Ledger:** `export ledger _coins: Map<Bytes<32>, QualifiedShieldedCoinInfo>`
-  — one UTXO per token color; a token's reserve *is* its pot's value
+  — one UTXO per token color; a token's reserve *is* its pot's value;
+  plus `export ledger _lpSupply: Uint<128>` (total LP minted)
 - **Token colors are derived in-circuit** from the contract address
   (`tokenType(pad(32,"mn-amm:tokenA"), kernel.self())`), so colors differ per
   deployment — never hardcode them
@@ -331,14 +440,12 @@ npm run dev -w ui            # dashboard + bridge on :3000
 |---|---|
 | Everything hangs; `API-WS … 1006`; `StorageOutOfSpace(481, 512)` in `docker logs node` | **Host disk < 512 MB free.** The node won't start. Free ≥ 1 GB (`docker rm` old exited containers, `npm cache clean --force`), node restarts itself |
 | `ENOENT … keys/seed.verifier` (or any missing key file) | **A `compact compile` run was interrupted.** Never kill it mid-run. Fix: `npm run compile:pool -w contract` (runs to completion, ~1–2 min), then `npm run build` |
-| CLI/UI hang forever on connect, no error | **Wrong contract address** — a nonexistent address never emits state (bridge times out after 90 s with a health error). Verify: `mn contract state --address $AMM_CONTRACT --managed contract/managed/pool` |
-| UI shows stale/old coins, or `NO_EXACT_COIN` with values that don't exist | **Wallet cache survives chain resets.** `mn cache clear --network undeployed --wallet devnet-main`, then `mn balance` to resync |
+| CLI/UI hang forever on connect, no error | **Wrong contract address** — a nonexistent address never emits state. Verify: `mn contract state --address $AMM_CONTRACT --managed contract/managed/pool` |
+| UI shows stale/old coins, or `INSUFFICIENT_COIN` with values that don't exist | **Wallet cache survives chain resets.** `mn cache clear --network undeployed --wallet devnet-main`, then `mn balance` to resync |
 | `mn serve unreachable at ws://127.0.0.1:9932` | Start it: `mn serve --approve-all --wallet devnet-main &`. To stop it, kill **by PID** (`pgrep -af '[m]n serve'` — brackets avoid matching your own shell) — a bare `pkill -f serve` can kill the shell you're typing in |
 | CLI/UI suddenly fails with `Insufficient Funds: could not balance dust` (even though `mn dust status` shows plenty) | `mn serve` outlived a chain outage / node restart with stale wallet state — restart it **by PID**, wait for `ws://127.0.0.1:9932`, retry |
 | Swap fails / proofs die mid-run | **Proof server out of memory** (swap fans out ~8 concurrent proofs, needs ≈2 GB free): `docker restart proof-server` |
-| First quote after ~1 min idle takes ~25 s | The bridge's background `isPaused()` refresh (a ~24 s submitted view) holds the queue; subsequent calls are ~50 ms |
-| `isPaused` / `pool-state` slow in the CLI | `isPaused()` is a *submitted view* — every call waits for tx inclusion (~24 s). The UI bridge caches it (60 s TTL) |
-| `NOT_IMPLEMENTED` from `addLiquidity`/`removeLiquidity` | Expected — LP share circuits are planned, not built |
+| `isPaused` / `pool-state` slow in the CLI | `isPaused()` is a *submitted view* — every call waits for tx inclusion (~24 s). The dashboard reads it once at connect and never re-polls it |
 | `mn localnet down` “ate” my deployment | By design: `down` wipes chain **and** undeployed wallet cache → re-run bootstrap steps 2–7. `mn localnet stop` only stops containers (state preserved) |
 
 ---
@@ -352,8 +459,10 @@ the CLI with server-side policy → strategy interface + runner (DCA,
 rebalance; simulation mode, idempotent execution, kill switch) → strategy
 dashboard in the UI → live demo (two agents, one policy-blocked trade, halt).
 
-**Contract:** LP share circuits (`addLiquidity`/`removeLiquidity` are API stubs
-today), then hardening against the `UNVERIFIED` markers.
+**Contract:** LP share circuits shipped (M3); view circuits replaced by
+ledger reads (M4); multi-pool via contract-per-pool registry (M5); faucet
+owner-gated and preprod redeployed (M7); remaining work is hardening
+against the `UNVERIFIED` markers.
 
 **Housekeeping:** remove leaderboard template leftovers, un-pin the
 `wallet-sdk-shielded` 3.0.1 patch once 3.0.2 is adopted.

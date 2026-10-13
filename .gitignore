@@ -38,7 +38,15 @@ jspm_packages/
 .yarn-integrity
 
 # dotenv environment variables file
-.env
+.env*
+!.envrc
+!.env.example
+
+# Secret-shaped files (seeds, passwords, keys) — never commit
+*password*
+*seed*.json
+*.pem
+wallet.json
 
 # MacOS
 .DS_Store
@@ -63,9 +71,13 @@ jspm_packages/
 # Dev-time copies of circuit assets (originals in contract/managed/)
 ui/public/keys/
 ui/public/zkir/
+ui/public/contract/
+.1am/
 
 # ai scratch work
 .midnight-expert
 .claude
 .opencode/
+.spike/pools.json
+pools.json
 .spike/
