@@ -3,15 +3,20 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "React dashboard for the Midnight shielded AMM — thin client over the api/ workspace via a local bridge (vite dev middleware)",
+  "description": "React dashboard for the Midnight shielded AMM — thin client over the api/ workspace via a Midnight DApp-connector wallet (1AM/Lace, preprod)",
   "scripts": {
+    "predev": "node ../scripts/sync-ui-zk.mjs",
     "dev": "vite",
+    "prebuild": "node ../scripts/sync-ui-zk.mjs",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@midnight-ntwrk/dapp-connector-api": "4.0.1",
     "@midnight-ntwrk/leaderboard-api": "*",
+    "@midnight-ntwrk/midnight-js-protocol": "4.1.1",
+    "buffer": "^6.0.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
@@ -21,6 +26,8 @@
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^5.1.4",
     "typescript": "^5.9.3",
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "vite-plugin-top-level-await": "^1.6.0",
+    "vite-plugin-wasm": "^3.5.0"
   }
 }

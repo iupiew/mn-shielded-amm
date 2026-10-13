@@ -544,6 +544,63 @@ button.chip {
   font-size: 12.5px;
 }
 
+.btn-amber {
+  background: rgba(251, 191, 36, 0.18);
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+.btn-amber:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+
+.go-link {
+  margin-left: 6px;
+}
+
+/* ── slippage control ───────────────────────────────────── */
+
+.slippage-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.slippage-presets {
+  display: flex;
+  gap: 4px;
+}
+
+.slippage-preset {
+  padding: 6px 11px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--bg-raise);
+  color: var(--dim);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.slippage-preset:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.slippage-preset.active {
+  background: rgba(79, 209, 197, 0.12);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.slippage-preset:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* ── dev tools ──────────────────────────────────────────── */
 
 .dev-head {
@@ -601,4 +658,61 @@ button.chip {
 
 .footer code {
   color: var(--accent);
+}
+
+/* ── connect screen ─────────────────────────────────────── */
+
+.layout-center {
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
+  min-height: 55vh;
+}
+
+.card-connect {
+  max-width: 560px;
+  width: 100%;
+}
+
+.card-connect .empty {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.card-connect .empty p {
+  margin: 0;
+}
+
+.card-connect .card-foot {
+  margin-top: 16px;
+}
+
+.wallet-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.wallet-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  background: rgba(230, 237, 245, 0.04);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.wallet-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.wallet-name {
+  font-weight: 600;
+  font-size: 14.5px;
 }
