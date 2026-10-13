@@ -470,7 +470,7 @@ npm run dev -w ui            # dashboard on :3000
 | UI shows stale/old coins, or `INSUFFICIENT_COIN` with values that don't exist | **Wallet cache survives chain resets.** `mn cache clear --network undeployed --wallet devnet-main`, then `mn balance` to resync |
 | `mn serve unreachable at ws://127.0.0.1:9932` | Start it: `mn serve --approve-all --wallet devnet-main &`. To stop it, kill **by PID** (`pgrep -af '[m]n serve'` — brackets avoid matching your own shell) — a bare `pkill -f serve` can kill the shell you're typing in |
 | CLI/UI suddenly fails with `Insufficient Funds: could not balance dust` (even though `mn dust status` shows plenty) | `mn serve` outlived a chain outage / node restart with stale wallet state — restart it **by PID**, wait for `ws://127.0.0.1:9932`, retry |
-| Swap fails / proofs die mid-run | **Proof server out of memory** (swap fans out ~8 concurrent proofs, needs ≈2 GB free): `docker restart proof-server` |
+| Swap fails / proofs die mid-run | **Proof server out of memory** (swap/add-liquidity fan out parallel proves; `addLiquidity` alone can OOM a 7 GB host): `docker restart proof-server`, free RAM (stale `tsserver`s, browsers), or serialize proofs through a FIFO proxy on `:6301` and point the CLI at it via `AMM_PROOF_URL=http://127.0.0.1:6301` |
 | `mn localnet down` “ate” my deployment | By design: `down` wipes chain **and** undeployed wallet cache → re-run bootstrap steps 2–7. `mn localnet stop` only stops containers (state preserved) |
 
 ---

@@ -49,6 +49,7 @@ export interface NodeAmmOptions {
   readonly serveUrl?: string;
   readonly indexerUrl?: string;
   readonly indexerWsUrl?: string;
+  /** Proof server URL (env `AMM_PROOF_URL`). Default http://localhost:6300. */
   readonly proofUrl?: string;
   /** Compiled artifacts dir, cwd-relative. Default 'contract/managed/pool'. */
   readonly managedDir?: string;
@@ -128,7 +129,10 @@ export async function createNodeAmm(options: NodeAmmOptions): Promise<NodeAmm> {
       }),
       publicDataProvider: indexerPublicDataProvider(options.indexerUrl ?? DEFAULT_INDEXER_URL, options.indexerWsUrl ?? DEFAULT_INDEXER_WS_URL),
       zkConfigProvider,
-      proofProvider: httpClientProofProvider(options.proofUrl ?? DEFAULT_PROOF_URL, zkConfigProvider),
+      proofProvider: httpClientProofProvider(
+        options.proofUrl ?? process.env.AMM_PROOF_URL ?? DEFAULT_PROOF_URL,
+        zkConfigProvider,
+      ),
       walletProvider,
       midnightProvider: walletProvider,
     } as unknown as PoolProviders;

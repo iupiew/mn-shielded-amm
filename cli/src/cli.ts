@@ -379,8 +379,9 @@ async function main(): Promise<number> {
             return 0;
           }
           const { execFileSync } = await import('node:child_process');
-          // UNVERIFIED: mn --args boolean encoding for the pool's third
-          // constructor parameter (validated by the M6 devnet run).
+          // `--args` boolean encoding for the pool's third constructor
+          // parameter: VERIFIED on localnet 2026-10-13 (faucetOpen true and
+          // false deploys; gated pool rejects mints with "AMM: faucet closed").
           const out = execFileSync('mn', ['contract', 'deploy', '--managed', 'contract/managed/pool', '--wallet', wallet, '--args', JSON.stringify([ownerIdBytes, saltBytes, faucetOpen]), '--json'], { encoding: 'utf8', timeout: 280_000 });
           const deployed = JSON.parse(out);
           const address = String(deployed.address ?? '');
