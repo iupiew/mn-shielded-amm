@@ -22,7 +22,7 @@ import { Transaction, createProofProvider } from '@midnight-ntwrk/midnight-js-ty
 import type { ConnectedAPI, Configuration, InitialAPI } from '@midnight-ntwrk/dapp-connector-api';
 import type { ContractAddress } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
 import * as PoolContract from '../../../contract/managed/pool/contract/index.js';
-import { createLeaderboardPrivateState, witnesses } from '../../../contract/src/witnesses.js';
+import { createPoolPrivateState, witnesses } from '../../../contract/src/witnesses.js';
 import { AmmApi } from './api.js';
 import { inMemoryPrivateStateProvider } from './in-memory-private-state-provider.js';
 import { withProveRetry } from './prove-retry.js';
@@ -250,7 +250,7 @@ export async function createBrowserAmm(options: BrowserAmmOptions): Promise<Brow
   })();
   const coins: CoinSource = vault.source;
 
-  const initialPrivateState = createLeaderboardPrivateState(resolveSecretKey(coinPublicKey));
+  const initialPrivateState = createPoolPrivateState(resolveSecretKey(coinPublicKey));
   const privateStateId = poolPrivateStateKey;
 
   const walletProvider = {
@@ -260,7 +260,7 @@ export async function createBrowserAmm(options: BrowserAmmOptions): Promise<Brow
       const started = performance.now();
       const attempt = async () => {
         const received = await connected.balanceUnsealedTransaction(toHex(tx.serialize()));
-        // UNVERIFIED generic deserialize — mirrors template BrowserLeaderboardManager.
+        // UNVERIFIED generic deserialize — works against the committed artifacts.
         return Transaction.deserialize('signature', 'proof', 'binding', fromHex(received.tx));
       };
       try {

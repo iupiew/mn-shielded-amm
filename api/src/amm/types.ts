@@ -5,7 +5,7 @@
 
 import { type MidnightProviders } from '@midnight-ntwrk/midnight-js-types';
 import { type FoundContract } from '@midnight-ntwrk/midnight-js-contracts';
-import { type LeaderboardPrivateState } from '../../../contract/src/index.js';
+import { type PoolPrivateState as ContractPoolPrivateState } from '../../../contract/src/index.js';
 
 export const poolPrivateStateKey = 'poolPrivateState';
 export type PoolPrivateStateId = typeof poolPrivateStateKey;
@@ -19,12 +19,12 @@ export type PoolCircuitKeys =
   | 'pause'
   | 'unpause';
 
-/** The pool contract's private state reuses the template's secret-key shape. */
-export type PoolPrivateState = LeaderboardPrivateState;
+/** Private state for pool circuits — the wallet's shielded secret key. */
+export type PoolPrivateState = ContractPoolPrivateState;
 
 export type PoolProviders = MidnightProviders<PoolCircuitKeys, PoolPrivateStateId, PoolPrivateState>;
 
-/** Found pool contract (callTx typed per circuit via `as any`, as in LeaderboardAPI). */
+/** Found pool contract (callTx typed per circuit via `as any`). */
 export type DeployedPoolContract = FoundContract<any>;
 
 /** A shielded coin as the contract circuits see it (contract-owned or minted). */

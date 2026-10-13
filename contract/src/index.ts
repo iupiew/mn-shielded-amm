@@ -1,16 +1,16 @@
 import { CompiledContract } from '@midnight-ntwrk/compact-js';
 
-export * as Leaderboard from '../managed/leaderboard/contract/index.js';
-export { createWitnesses, setCustomName, createLeaderboardPrivateState } from './witnesses.js';
-export type { LeaderboardPrivateState } from './witnesses.js';
+export * as Pool from '../managed/pool/contract/index.js';
+export { createWitnesses, createPoolPrivateState, witnesses } from './witnesses.js';
+export type { PoolPrivateState } from './witnesses.js';
 
-import * as LeaderboardContract from '../managed/leaderboard/contract/index.js';
+import * as PoolContract from '../managed/pool/contract/index.js';
 import { createWitnesses } from './witnesses.js';
 
-export const CompiledLeaderboardContract = CompiledContract.make(
-  'leaderboard',
-  LeaderboardContract.Contract,
+export const CompiledPoolContract = CompiledContract.make(
+  'pool',
+  PoolContract.Contract,
 ).pipe(
   CompiledContract.withWitnesses(createWitnesses()),
-  CompiledContract.withCompiledFileAssets('./managed/leaderboard'),
+  CompiledContract.withCompiledFileAssets('./managed/pool'),
 );

@@ -10,7 +10,7 @@
     "cli"
   ],
   "scripts": {
-    "compile": "cd contract && npm run compact",
+    "compile": "cd contract && npm run compile:pool",
     "build": "cd contract && npm run build && cd ../api && npm run build"
   },
   "devDependencies": {

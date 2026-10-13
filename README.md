@@ -62,8 +62,7 @@ mn-amm/
 ├── contract/
 │   ├── pool.compact            # THE contract: faucet, seed, swap, liquidity, pause
 │   ├── managed/pool/           # compiler output (keys/, zkir/, contract/) — committed
-│   ├── leaderboard.compact     # template legacy (unused by this app)
-│   └── src/                    # contract JS exports (legacy leaderboard + witnesses)
+│   └── src/                    # contract JS exports (Pool namespace + witnesses)
 ├── api/                        # shared business logic — everything else calls this
 │   └── src/amm/
 │       ├── api.ts              # AmmApi: poolState, quote, swap, faucet, seed, pause…
@@ -79,9 +78,9 @@ mn-amm/
 └── docs/                       # privacy model, liquidity design, licenses, patches
 ```
 
-**Template legacy** (present but not part of the AMM): `leaderboard.compact`,
-the leaderboard exports in `api/src/index.ts`, `contract/README.md`, and the root
-`npm run compile` script (use `compile:pool` instead — see below).
+**Template legacy:** the starter leaderboard contract and its exports have
+been removed; npm package names still say `leaderboard-*` (rename tracked as
+an open decision).
 
 ---
 

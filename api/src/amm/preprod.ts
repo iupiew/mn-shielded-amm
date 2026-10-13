@@ -53,7 +53,7 @@ import { ApiPromise, WsProvider } from '@polkadot/api';
 import { u8aToHex } from '@polkadot/util';
 import { type Logger } from 'pino';
 import * as PoolContract from '../../../contract/managed/pool/contract/index.js';
-import { createLeaderboardPrivateState, witnesses } from '../../../contract/src/witnesses.js';
+import { createPoolPrivateState, witnesses } from '../../../contract/src/witnesses.js';
 import { AmmApi } from './api.js';
 import { withProveRetry } from './prove-retry.js';
 import { ServeRpc } from './serve-rpc.js';
@@ -609,7 +609,7 @@ export async function createPreprodAmm(options: PreprodAmmOptions = {}): Promise
 
   // Same private-state secret rule as browser.ts (Bech32m- and hex-aware).
   const secretKey = hexToBytes(parseCoinPublicKeyToHex(coinPublicKey, networkId).slice(0, 64));
-  const initialPrivateState = createLeaderboardPrivateState(secretKey);
+  const initialPrivateState = createPoolPrivateState(secretKey);
 
   const vault = createPersistentVault(`mn-amm:vault:${contractAddress}:${coinPublicKey}`, fileVaultStorage(vaultPath));
   // Live coins: `midnight balance --shielded --force-shielded` is the only

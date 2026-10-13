@@ -24,7 +24,7 @@ import { type ContractAddress } from '@midnight-ntwrk/midnight-js-protocol/compa
 import { type Logger } from 'pino';
 import { resolve } from 'node:path';
 import * as PoolContract from '../../../contract/managed/pool/contract/index.js';
-import { createLeaderboardPrivateState, witnesses } from '../../../contract/src/witnesses.js';
+import { createPoolPrivateState, witnesses } from '../../../contract/src/witnesses.js';
 import { AmmApi } from './api.js';
 import { ServeRpc } from './serve-rpc.js';
 import { DEFAULT_WALLET, readWalletCoins, shieldedSyncRequired, syncWalletCache } from './wallet-cache.js';
@@ -99,7 +99,7 @@ export async function createNodeAmm(options: NodeAmmOptions): Promise<NodeAmm> {
   await rpc.connect(options.serveUrl ?? process.env.AMM_SERVE_URL ?? DEFAULT_SERVE_URL);
   try {
     const addresses = await rpc.call<{ shieldedCoinPublicKey: string; shieldedEncryptionPublicKey: string }>('getShieldedAddresses', {});
-    const initialPrivateState = createLeaderboardPrivateState(resolveSecretKey(addresses.shieldedCoinPublicKey));
+    const initialPrivateState = createPoolPrivateState(resolveSecretKey(addresses.shieldedCoinPublicKey));
 
     const compiled = CompiledContract.make('pool', PoolContract.Contract).pipe(
       (c) => CompiledContract.withWitnesses(c, witnesses),

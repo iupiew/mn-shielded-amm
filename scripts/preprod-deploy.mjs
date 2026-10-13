@@ -309,7 +309,7 @@ async function main() {
   );
 
   const secretKey = hexToBytes(coinPublicKey.slice(0, 64));
-  const initialPrivateState = witnessesMod.createLeaderboardPrivateState(secretKey);
+  const initialPrivateState = witnessesMod.createPoolPrivateState(secretKey);
 
   console.log('\nDeploying...');
   const deployed = await deployContract(providers, {
