@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "description": "React dashboard for the Midnight shielded AMM — thin client over the api/ workspace via a Midnight DApp-connector wallet (1AM/Lace, preprod)",
+  "license": "Apache-2.0",
   "scripts": {
     "predev": "node ../scripts/sync-ui-zk.mjs",
     "dev": "vite",

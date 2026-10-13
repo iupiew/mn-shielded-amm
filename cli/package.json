@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "description": "Thin CLI over the AMM api/ (all logic lives in the api workspace)",
+  "license": "Apache-2.0",
   "bin": {
     "mn-amm": "src/cli.ts"
   },

@@ -23,5 +23,6 @@
   },
   "dependencies": {
     "@openzeppelin/compact-contracts": "0.3.0-rc.1"
-  }
+  },
+  "license": "Apache-2.0"
 }
