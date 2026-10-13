@@ -17,6 +17,7 @@ import "../node_modules/@openzeppelin/compact-contracts/access/ZOwnablePK" prefi
 import "../node_modules/@openzeppelin/compact-contracts/security/Pausable" prefix Pausable_;
 
 export ledger _coins: Map<Bytes<32>, QualifiedShieldedCoinInfo>;
+export ledger _lpSupply: Uint<128>;
 
 // UNVERIFIED: constructor may call imported module circuits
 // (verified pattern: ShieldedMultiSig preset calls Signer_initialize in constructor).
@@ -32,16 +33,14 @@ circuit tokenColorB(): Bytes<32> {
   return tokenType(pad(32, "mn-amm:tokenB"), kernel.self());
 }
 
-circuit reserveOf(color: Bytes<32>): Uint<128> {
-  if (_coins.member(color)) {
-    return _coins.lookup(color).value;
-  } else {
-    return 0;
-  }
+circuit lpColor(): Bytes<32> {
+  return tokenType(pad(32, "mn-amm:lp"), kernel.self());
 }
 
-// OPEN FAUCET: devnet-only demo mint; gate with ZOwn_assertOnlyOwner (or
-// remove) before any public deployment.
+// UNVERIFIED: caller-supplied nonces must be unique per mint (enforced off-chain
+// in api/); the ledger rejects duplicate coin ids from nonce reuse.
+// Open faucet (since M8, after a gated M7 experiment): anyone can mint, so
+// pool tokens are free demo units — pause/unpause stay owner-gated below.
 export circuit faucet(amountA: Uint<64>, amountB: Uint<64>, nonceA: Bytes<32>, nonceB: Bytes<32>): [ShieldedCoinInfo, ShieldedCoinInfo] {
   assert(amountA > 0, "faucet: amountA is zero");
   assert(amountB > 0, "faucet: amountB is zero");
@@ -54,9 +53,10 @@ export circuit faucet(amountA: Uint<64>, amountB: Uint<64>, nonceA: Bytes<32>, n
   return [sentA.sent, sentB.sent];
 }
 
-// SEED: devnet-only initial liquidity — creates both pots without LP
-// accounting (no share tokens). Replaced by addLiquidity before real use.
-export circuit seed(coinA: ShieldedCoinInfo, coinB: ShieldedCoinInfo): [] {
+// SEED: devnet-only initial liquidity — creates both pots and mints the
+// initial LP supply to the seeder (api/ supplies sqrt(a·b), floor; the
+// >= 1000 floor blocks dust-supply griefing of later deposits).
+export circuit seed(coinA: ShieldedCoinInfo, coinB: ShieldedCoinInfo, initialLp: Uint<64>, nonceLp: Bytes<32>): ShieldedCoinInfo {
   Pausable_assertNotPaused();
   const colorA = disclose(tokenColorA());
   const colorB = disclose(tokenColorB());
@@ -67,15 +67,25 @@ export circuit seed(coinA: ShieldedCoinInfo, coinB: ShieldedCoinInfo): [] {
   assert(!_coins.member(cA), "AMM: pool already seeded");
   assert(!_coins.member(cB), "AMM: pool already seeded");
   assert(coinA.value > 0 && coinB.value > 0, "AMM: zero seed");
+  assert(initialLp >= 1000, "AMM: initialLp below floor");
   receiveShielded(disclose(coinA));
   _coins.insertCoin(cA, disclose(coinA), right<ZswapCoinPublicKey, ContractAddress>(kernel.self()));
   receiveShielded(disclose(coinB));
   _coins.insertCoin(cB, disclose(coinB), right<ZswapCoinPublicKey, ContractAddress>(kernel.self()));
+  const lpCoin = mintShieldedToken(pad(32, "mn-amm:lp"), disclose(initialLp), disclose(nonceLp), right<ZswapCoinPublicKey, ContractAddress>(kernel.self()));
+  const sentLp = sendImmediateShielded(lpCoin, left<ZswapCoinPublicKey, ContractAddress>(ownPublicKey()), lpCoin.value);
+  _lpSupply = disclose(initialLp as Uint<128>);
+  return sentLp.sent;
 }
 
-// UNVERIFIED: caller-supplied nonces must be unique per mint (enforced off-chain
-// in api/); the ledger rejects duplicate coin ids from nonce reuse.
-export circuit swap(inCoin: ShieldedCoinInfo, amountOut: Uint<64>, minAmountOut: Uint<64>): [] {
+// Partial-input swap (M2): `amountIn` may be smaller than the input coin's
+// value. The remainder is returned to the caller in the same transaction
+// (fresh-coin split: receiveShielded → sendImmediateShielded → merge the
+// amountIn change back into the pot); when amountIn equals the coin value the
+// original whole-coin merge path runs. Both paths spend coins that originate
+// in this transaction, which is the documented fresh-coin contract of
+// receiveShielded/sendImmediateShielded/mergeCoinImmediate.
+export circuit swap(inCoin: ShieldedCoinInfo, amountIn: Uint<64>, amountOut: Uint<64>, minAmountOut: Uint<64>): [] {
   Pausable_assertNotPaused();
 
   const colorIn = disclose(inCoin.color);
@@ -93,7 +103,9 @@ export circuit swap(inCoin: ShieldedCoinInfo, amountOut: Uint<64>, minAmountOut:
   assert(inCoin.value < 18446744073709551616, "AMM: input too large");
   assert(potIn.value < 18446744073709551616, "AMM: reserve in too large");
   assert(potOut.value < 18446744073709551616, "AMM: reserve out too large");
-  const v = inCoin.value as Uint<64>;
+  assert(amountIn > 0, "AMM: zero amountIn");
+  assert(amountIn <= (inCoin.value as Uint<64>), "AMM: amountIn exceeds input coin");
+  const v = amountIn;
   const rIn = potIn.value as Uint<64>;
   const rOut = potOut.value as Uint<64>;
 
@@ -110,8 +122,23 @@ export circuit swap(inCoin: ShieldedCoinInfo, amountOut: Uint<64>, minAmountOut:
   assert((rIn + v) * (rOut - amountOut) >= rIn * rOut, "AMM: k invariant");
 
   receiveShielded(disclose(inCoin));
-  const merged = mergeCoinImmediate(potIn, disclose(inCoin));
-  _coins.insertCoin(colorIn, merged, right<ZswapCoinPublicKey, ContractAddress>(kernel.self()));
+  // The branch predicate is disclosed: which ledger path runs must be public
+  // (the observer already learns exact-vs-partial from the outputs anyway).
+  if (disclose(amountIn == (inCoin.value as Uint<64>))) {
+    // Exact coin: merge the whole thing into the pot (original path).
+    const merged = mergeCoinImmediate(potIn, disclose(inCoin));
+    _coins.insertCoin(colorIn, merged, right<ZswapCoinPublicKey, ContractAddress>(kernel.self()));
+  } else {
+    // Partial coin: send the remainder back to the caller, merge amountIn.
+    const split = sendImmediateShielded(
+      disclose(inCoin),
+      left<ZswapCoinPublicKey, ContractAddress>(ownPublicKey()),
+      disclose(inCoin.value - (amountIn as Uint<128>)),
+    );
+    assert(disclose(split.change.is_some), "AMM: split change missing");
+    const merged = mergeCoinImmediate(potIn, split.change.value);
+    _coins.insertCoin(colorIn, merged, right<ZswapCoinPublicKey, ContractAddress>(kernel.self()));
+  }
 
   const sendVal = amountOut as Uint<128>;
   const result = sendShielded(potOut, left<ZswapCoinPublicKey, ContractAddress>(ownPublicKey()), disclose(sendVal));
@@ -122,6 +149,142 @@ export circuit swap(inCoin: ShieldedCoinInfo, amountOut: Uint<64>, minAmountOut:
   }
 }
 
+// LP deposit (M3): lpOut = min(floor(amountA*S/rA), floor(amountB*S/rB)),
+// division-free via quotient range checks. `le` compares the deposit ratio
+// against the pool ratio (cross-multiplied; all public values) to pick which
+// side's quotient must be exactly lpOut. Partial coin amounts use the M2
+// split pattern; the LP share is minted to the caller.
+export circuit addLiquidity(coinA: ShieldedCoinInfo, amountA: Uint<64>, coinB: ShieldedCoinInfo, amountB: Uint<64>, lpOut: Uint<64>, minLpOut: Uint<64>, nonceLp: Bytes<32>): ShieldedCoinInfo {
+  Pausable_assertNotPaused();
+  const colorA = disclose(tokenColorA());
+  const colorB = disclose(tokenColorB());
+  const cA = disclose(coinA.color);
+  const cB = disclose(coinB.color);
+  assert(cA == colorA, "AMM: coinA is not tokenA");
+  assert(cB == colorB, "AMM: coinB is not tokenB");
+  assert(_coins.member(cA), "AMM: pool reserve A missing");
+  assert(_coins.member(cB), "AMM: pool reserve B missing");
+  const potA = _coins.lookup(cA);
+  const potB = _coins.lookup(cB);
+  assert(_lpSupply > 0, "AMM: pool not seeded");
+  assert(_lpSupply < 18446744073709551616, "AMM: supply too large");
+  assert(potA.value < 18446744073709551616, "AMM: reserve A too large");
+  assert(potB.value < 18446744073709551616, "AMM: reserve B too large");
+  assert(coinA.value < 18446744073709551616, "AMM: coinA too large");
+  assert(coinB.value < 18446744073709551616, "AMM: coinB too large");
+  assert(amountA > 0 && amountB > 0, "AMM: zero deposit");
+  assert(amountA <= (coinA.value as Uint<64>), "AMM: amountA exceeds coinA");
+  assert(amountB <= (coinB.value as Uint<64>), "AMM: amountB exceeds coinB");
+  assert(lpOut > 0, "AMM: zero lpOut");
+  assert(lpOut < 18446744073709551616, "AMM: lpOut too large");
+
+  const S = _lpSupply as Uint<64>;
+  const rA = potA.value as Uint<64>;
+  const rB = potB.value as Uint<64>;
+
+  // le <=> amountA/rA <= amountB/rB <=> qA <= qB (S > 0 cancels).
+  const le = (amountA * rB) <= (amountB * rA);
+  if (disclose(le)) {
+    // min side is A: prove lpOut == floor(amountA*S/rA) and lpOut <= qB.
+    assert(lpOut * rA <= amountA * S, "AMM: lpOut too high (A)");
+    assert(amountA * S < (lpOut + 1) * rA, "AMM: lpOut too low (A)");
+    assert(lpOut * rB <= amountB * S, "AMM: lpOut exceeds B side");
+  } else {
+    assert(lpOut * rB <= amountB * S, "AMM: lpOut too high (B)");
+    assert(amountB * S < (lpOut + 1) * rB, "AMM: lpOut too low (B)");
+    assert(lpOut * rA <= amountA * S, "AMM: lpOut exceeds A side");
+  }
+  assert(lpOut >= minLpOut, "AMM: below minLpOut");
+
+  receiveShielded(disclose(coinA));
+  if (disclose(amountA == (coinA.value as Uint<64>))) {
+    const mergedA = mergeCoinImmediate(potA, disclose(coinA));
+    _coins.insertCoin(cA, mergedA, right<ZswapCoinPublicKey, ContractAddress>(kernel.self()));
+  } else {
+    const splitA = sendImmediateShielded(disclose(coinA), left<ZswapCoinPublicKey, ContractAddress>(ownPublicKey()), disclose(coinA.value - (amountA as Uint<128>)));
+    assert(disclose(splitA.change.is_some), "AMM: split change A missing");
+    const mergedA = mergeCoinImmediate(potA, splitA.change.value);
+    _coins.insertCoin(cA, mergedA, right<ZswapCoinPublicKey, ContractAddress>(kernel.self()));
+  }
+  receiveShielded(disclose(coinB));
+  if (disclose(amountB == (coinB.value as Uint<64>))) {
+    const mergedB = mergeCoinImmediate(potB, disclose(coinB));
+    _coins.insertCoin(cB, mergedB, right<ZswapCoinPublicKey, ContractAddress>(kernel.self()));
+  } else {
+    const splitB = sendImmediateShielded(disclose(coinB), left<ZswapCoinPublicKey, ContractAddress>(ownPublicKey()), disclose(coinB.value - (amountB as Uint<128>)));
+    assert(disclose(splitB.change.is_some), "AMM: split change B missing");
+    const mergedB = mergeCoinImmediate(potB, splitB.change.value);
+    _coins.insertCoin(cB, mergedB, right<ZswapCoinPublicKey, ContractAddress>(kernel.self()));
+  }
+
+  const lpCoin = mintShieldedToken(pad(32, "mn-amm:lp"), disclose(lpOut), disclose(nonceLp), right<ZswapCoinPublicKey, ContractAddress>(kernel.self()));
+  const sentLp = sendImmediateShielded(lpCoin, left<ZswapCoinPublicKey, ContractAddress>(ownPublicKey()), lpCoin.value);
+  _lpSupply = disclose((_lpSupply + (lpOut as Uint<128>)) as Uint<128>);
+  return sentLp.sent;
+}
+
+// LP withdrawal (M3): aOut = floor(amountLp*rA/S), bOut = floor(amountLp*rB/S)
+// (caller-supplied quotients, swap-style range checks). The redeemed LP is
+// burned via shieldedBurnAddress; partial burns return the LP remainder to
+// the caller; pots pay out with the swap output pattern (change kept, pot
+// removed when emptied). Full exit (amountLp == S) drains both pots exactly.
+export circuit removeLiquidity(coinLp: ShieldedCoinInfo, amountLp: Uint<64>, aOut: Uint<64>, bOut: Uint<64>, minA: Uint<64>, minB: Uint<64>, nonceA: Bytes<32>, nonceB: Bytes<32>): [ShieldedCoinInfo, ShieldedCoinInfo] {
+  Pausable_assertNotPaused();
+  const colorLp = disclose(lpColor());
+  const cLp = disclose(coinLp.color);
+  assert(cLp == colorLp, "AMM: coin is not LP token");
+  const colorA = disclose(tokenColorA());
+  const colorB = disclose(tokenColorB());
+  assert(_coins.member(colorA), "AMM: pool reserve A missing");
+  assert(_coins.member(colorB), "AMM: pool reserve B missing");
+  const potA = _coins.lookup(colorA);
+  const potB = _coins.lookup(colorB);
+  assert(_lpSupply > 0, "AMM: no LP supply");
+  assert(_lpSupply < 18446744073709551616, "AMM: supply too large");
+  assert(potA.value < 18446744073709551616, "AMM: reserve A too large");
+  assert(potB.value < 18446744073709551616, "AMM: reserve B too large");
+  assert(coinLp.value < 18446744073709551616, "AMM: LP coin too large");
+  assert(amountLp > 0, "AMM: zero amountLp");
+  assert(amountLp <= (coinLp.value as Uint<64>), "AMM: amountLp exceeds coin");
+  assert(amountLp <= (_lpSupply as Uint<64>), "AMM: amountLp exceeds supply");
+  assert(aOut > 0 && bOut > 0, "AMM: zero payout");
+  assert(aOut <= potA.value, "AMM: payout A exceeds reserve");
+  assert(bOut <= potB.value, "AMM: payout B exceeds reserve");
+
+  const S = _lpSupply as Uint<64>;
+  const rA = potA.value as Uint<64>;
+  const rB = potB.value as Uint<64>;
+  const amt = amountLp;
+  assert(aOut * S <= amt * rA, "AMM: aOut too high");
+  assert(amt * rA < (aOut + 1) * S, "AMM: aOut too low");
+  assert(bOut * S <= amt * rB, "AMM: bOut too high");
+  assert(amt * rB < (bOut + 1) * S, "AMM: bOut too low");
+  assert(aOut >= minA, "AMM: below minA");
+  assert(bOut >= minB, "AMM: below minB");
+
+  receiveShielded(disclose(coinLp));
+  const burnRes = sendImmediateShielded(disclose(coinLp), shieldedBurnAddress(), disclose(amountLp as Uint<128>));
+  if (disclose(burnRes.change.is_some)) {
+    // Full remainder back to the burner; sending its entire value cannot split further.
+    sendImmediateShielded(burnRes.change.value, left<ZswapCoinPublicKey, ContractAddress>(ownPublicKey()), burnRes.change.value.value);
+  }
+
+  const resA = sendShielded(potA, left<ZswapCoinPublicKey, ContractAddress>(ownPublicKey()), disclose(aOut as Uint<128>));
+  if (disclose(resA.change.is_some)) {
+    _coins.insertCoin(colorA, resA.change.value, right<ZswapCoinPublicKey, ContractAddress>(kernel.self()));
+  } else {
+    _coins.remove(colorA);
+  }
+  const resB = sendShielded(potB, left<ZswapCoinPublicKey, ContractAddress>(ownPublicKey()), disclose(bOut as Uint<128>));
+  if (disclose(resB.change.is_some)) {
+    _coins.insertCoin(colorB, resB.change.value, right<ZswapCoinPublicKey, ContractAddress>(kernel.self()));
+  } else {
+    _coins.remove(colorB);
+  }
+  _lpSupply = disclose(_lpSupply - (amountLp as Uint<128>));
+  return [resA.sent, resB.sent];
+}
+
 export circuit pause(): [] {
   ZOwn_assertOnlyOwner();
   Pausable__pause();
@@ -130,16 +293,4 @@ export circuit pause(): [] {
 export circuit unpause(): [] {
   ZOwn_assertOnlyOwner();
   Pausable__unpause();
-}
-
-export circuit getColors(): [Bytes<32>, Bytes<32>] {
-  return [tokenColorA(), tokenColorB()];
-}
-
-export circuit getReserves(): [Uint<128>, Uint<128>] {
-  return [reserveOf(disclose(tokenColorA())), reserveOf(disclose(tokenColorB()))];
-}
-
-export circuit getIsPaused(): Boolean {
-  return Pausable_isPaused();
 }

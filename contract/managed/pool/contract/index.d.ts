@@ -19,18 +19,49 @@ export type ImpureCircuits<PS> = {
                                                                      }]>;
   seed(context: __compactRuntime.CircuitContext<PS>,
        coinA_0: { nonce: Uint8Array, color: Uint8Array, value: bigint },
-       coinB_0: { nonce: Uint8Array, color: Uint8Array, value: bigint }): __compactRuntime.CircuitResults<PS, []>;
+       coinB_0: { nonce: Uint8Array, color: Uint8Array, value: bigint },
+       initialLp_0: bigint,
+       nonceLp_0: Uint8Array): __compactRuntime.CircuitResults<PS, { nonce: Uint8Array,
+                                                                     color: Uint8Array,
+                                                                     value: bigint
+                                                                   }>;
   swap(context: __compactRuntime.CircuitContext<PS>,
        inCoin_0: { nonce: Uint8Array, color: Uint8Array, value: bigint },
+       amountIn_0: bigint,
        amountOut_0: bigint,
        minAmountOut_0: bigint): __compactRuntime.CircuitResults<PS, []>;
+  addLiquidity(context: __compactRuntime.CircuitContext<PS>,
+               coinA_0: { nonce: Uint8Array, color: Uint8Array, value: bigint },
+               amountA_0: bigint,
+               coinB_0: { nonce: Uint8Array, color: Uint8Array, value: bigint },
+               amountB_0: bigint,
+               lpOut_0: bigint,
+               minLpOut_0: bigint,
+               nonceLp_0: Uint8Array): __compactRuntime.CircuitResults<PS, { nonce: Uint8Array,
+                                                                             color: Uint8Array,
+                                                                             value: bigint
+                                                                           }>;
+  removeLiquidity(context: __compactRuntime.CircuitContext<PS>,
+                  coinLp_0: { nonce: Uint8Array,
+                              color: Uint8Array,
+                              value: bigint
+                            },
+                  amountLp_0: bigint,
+                  aOut_0: bigint,
+                  bOut_0: bigint,
+                  minA_0: bigint,
+                  minB_0: bigint,
+                  nonceA_0: Uint8Array,
+                  nonceB_0: Uint8Array): __compactRuntime.CircuitResults<PS, [{ nonce: Uint8Array,
+                                                                                color: Uint8Array,
+                                                                                value: bigint
+                                                                              },
+                                                                              { nonce: Uint8Array,
+                                                                                color: Uint8Array,
+                                                                                value: bigint
+                                                                              }]>;
   pause(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, []>;
   unpause(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, []>;
-  getColors(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, [Uint8Array,
-                                                                                                Uint8Array]>;
-  getReserves(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, [bigint,
-                                                                                                  bigint]>;
-  getIsPaused(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, boolean>;
 }
 
 export type ProvableCircuits<PS> = {
@@ -48,18 +79,49 @@ export type ProvableCircuits<PS> = {
                                                                      }]>;
   seed(context: __compactRuntime.CircuitContext<PS>,
        coinA_0: { nonce: Uint8Array, color: Uint8Array, value: bigint },
-       coinB_0: { nonce: Uint8Array, color: Uint8Array, value: bigint }): __compactRuntime.CircuitResults<PS, []>;
+       coinB_0: { nonce: Uint8Array, color: Uint8Array, value: bigint },
+       initialLp_0: bigint,
+       nonceLp_0: Uint8Array): __compactRuntime.CircuitResults<PS, { nonce: Uint8Array,
+                                                                     color: Uint8Array,
+                                                                     value: bigint
+                                                                   }>;
   swap(context: __compactRuntime.CircuitContext<PS>,
        inCoin_0: { nonce: Uint8Array, color: Uint8Array, value: bigint },
+       amountIn_0: bigint,
        amountOut_0: bigint,
        minAmountOut_0: bigint): __compactRuntime.CircuitResults<PS, []>;
+  addLiquidity(context: __compactRuntime.CircuitContext<PS>,
+               coinA_0: { nonce: Uint8Array, color: Uint8Array, value: bigint },
+               amountA_0: bigint,
+               coinB_0: { nonce: Uint8Array, color: Uint8Array, value: bigint },
+               amountB_0: bigint,
+               lpOut_0: bigint,
+               minLpOut_0: bigint,
+               nonceLp_0: Uint8Array): __compactRuntime.CircuitResults<PS, { nonce: Uint8Array,
+                                                                             color: Uint8Array,
+                                                                             value: bigint
+                                                                           }>;
+  removeLiquidity(context: __compactRuntime.CircuitContext<PS>,
+                  coinLp_0: { nonce: Uint8Array,
+                              color: Uint8Array,
+                              value: bigint
+                            },
+                  amountLp_0: bigint,
+                  aOut_0: bigint,
+                  bOut_0: bigint,
+                  minA_0: bigint,
+                  minB_0: bigint,
+                  nonceA_0: Uint8Array,
+                  nonceB_0: Uint8Array): __compactRuntime.CircuitResults<PS, [{ nonce: Uint8Array,
+                                                                                color: Uint8Array,
+                                                                                value: bigint
+                                                                              },
+                                                                              { nonce: Uint8Array,
+                                                                                color: Uint8Array,
+                                                                                value: bigint
+                                                                              }]>;
   pause(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, []>;
   unpause(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, []>;
-  getColors(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, [Uint8Array,
-                                                                                                Uint8Array]>;
-  getReserves(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, [bigint,
-                                                                                                  bigint]>;
-  getIsPaused(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, boolean>;
 }
 
 export type PureCircuits = {
@@ -80,18 +142,49 @@ export type Circuits<PS> = {
                                                                      }]>;
   seed(context: __compactRuntime.CircuitContext<PS>,
        coinA_0: { nonce: Uint8Array, color: Uint8Array, value: bigint },
-       coinB_0: { nonce: Uint8Array, color: Uint8Array, value: bigint }): __compactRuntime.CircuitResults<PS, []>;
+       coinB_0: { nonce: Uint8Array, color: Uint8Array, value: bigint },
+       initialLp_0: bigint,
+       nonceLp_0: Uint8Array): __compactRuntime.CircuitResults<PS, { nonce: Uint8Array,
+                                                                     color: Uint8Array,
+                                                                     value: bigint
+                                                                   }>;
   swap(context: __compactRuntime.CircuitContext<PS>,
        inCoin_0: { nonce: Uint8Array, color: Uint8Array, value: bigint },
+       amountIn_0: bigint,
        amountOut_0: bigint,
        minAmountOut_0: bigint): __compactRuntime.CircuitResults<PS, []>;
+  addLiquidity(context: __compactRuntime.CircuitContext<PS>,
+               coinA_0: { nonce: Uint8Array, color: Uint8Array, value: bigint },
+               amountA_0: bigint,
+               coinB_0: { nonce: Uint8Array, color: Uint8Array, value: bigint },
+               amountB_0: bigint,
+               lpOut_0: bigint,
+               minLpOut_0: bigint,
+               nonceLp_0: Uint8Array): __compactRuntime.CircuitResults<PS, { nonce: Uint8Array,
+                                                                             color: Uint8Array,
+                                                                             value: bigint
+                                                                           }>;
+  removeLiquidity(context: __compactRuntime.CircuitContext<PS>,
+                  coinLp_0: { nonce: Uint8Array,
+                              color: Uint8Array,
+                              value: bigint
+                            },
+                  amountLp_0: bigint,
+                  aOut_0: bigint,
+                  bOut_0: bigint,
+                  minA_0: bigint,
+                  minB_0: bigint,
+                  nonceA_0: Uint8Array,
+                  nonceB_0: Uint8Array): __compactRuntime.CircuitResults<PS, [{ nonce: Uint8Array,
+                                                                                color: Uint8Array,
+                                                                                value: bigint
+                                                                              },
+                                                                              { nonce: Uint8Array,
+                                                                                color: Uint8Array,
+                                                                                value: bigint
+                                                                              }]>;
   pause(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, []>;
   unpause(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, []>;
-  getColors(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, [Uint8Array,
-                                                                                                Uint8Array]>;
-  getReserves(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, [bigint,
-                                                                                                  bigint]>;
-  getIsPaused(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, boolean>;
 }
 
 export type Ledger = {
@@ -106,6 +199,7 @@ export type Ledger = {
                                };
     [Symbol.iterator](): Iterator<[Uint8Array, { nonce: Uint8Array, color: Uint8Array, value: bigint, mt_index: bigint }]>
   };
+  readonly _lpSupply: bigint;
 }
 
 export type ContractReferenceLocations = any;
