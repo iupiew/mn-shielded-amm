@@ -418,7 +418,7 @@ npm run build                # contract (tsc) + api (tsc + copy managed/)
 npm run compile:pool -w contract   # recompile pool.compact — ONLY after editing it
 npm run typecheck -w api     # also: -w ui, -w mn-amm-cli
 npm test -w api              # 37 tests (math, quotes, errors, local registry)
-npm test -w contract         # 38 tests (15 pool circuit + 23 template)
+npm test -w contract         # 15 pool circuit tests (local proving)
 npm run dev -w ui            # dashboard on :3000
 ```
 
@@ -489,9 +489,9 @@ reads; multi-pool via contract-per-pool registry; deploy-time faucet gate;
 remaining work is hardening against the `UNVERIFIED` markers, plus a
 preprod redeploy of the stale pool above.
 
-**Housekeeping:** remove the leaderboard template leftovers (tracked for the
-release pass); `wallet-sdk-shielded` — no local patch exists in this repo,
-see `docs/patches.md`.
+**Housekeeping:** leaderboard template leftovers removed; npm package names
+still say `leaderboard-*` (rename tracked as an open decision); see
+`docs/patches.md` for the wallet-sdk-shielded note.
 
 ---
 
