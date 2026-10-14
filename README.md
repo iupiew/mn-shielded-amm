@@ -489,6 +489,11 @@ reads; multi-pool via contract-per-pool registry; deploy-time faucet gate;
 remaining work is hardening against the `UNVERIFIED` markers, plus a
 preprod redeploy of the stale pool above.
 
+**Release checklist:** liquidity E2E on a ≥12 GB host (the circuit passes
+its tests; on-chain proving OOMs this class of box), preprod redeploy of
+the gated pool, CI first-run validation, optional `leaderboard-*` package
+renames. Engineering notes live in [`docs/learnings.md`](./docs/learnings.md).
+
 **Housekeeping:** leaderboard template leftovers removed; npm package names
 still say `leaderboard-*` (rename tracked as an open decision); see
 `docs/patches.md` for the wallet-sdk-shielded note.
