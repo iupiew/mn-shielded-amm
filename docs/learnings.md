@@ -31,11 +31,14 @@ something that actually bit us, with the fix that stuck.
 - **Serialize through a FIFO proxy** (`~/.midnight/sync-infra/ps-queue.mjs`,
   `:6301 → :6300`) and point the CLI at it via `AMM_PROOF_URL`. Peak memory
   drops to one circuit at a time; swap/faucet/seed prove fine this way.
-- **`addLiquidity` is its own beast**: a single prove request carries ~76 MB
-  of payload and still OOMs a serialized 7 GB box with ~2 GB free. The
-  circuit passes the in-process vitest prover (15/15), but on-chain E2E for
-  liquidity needs a bigger host or swap. Budget ≥12 GB before promising a
-  liquidity demo.
+- **`addLiquidity`/`removeLiquidity` are the memory-hungry ones**: a single
+  prove request carries ~76 MB of payload. It OOMs a serialized 7 GB box
+  with ~2 GB free, but **succeeds with ~4 GB free** — both circuits settled
+  on-chain 2026-10-15 (90,908 LP minted in; 44,000 A + 36,373 B back out)
+  with the FIFO queue and no swap. Note the vitest suite never *proves*
+  anything (next section) — a green 15/15 run exercises circuit logic only.
+  Budget ≥4 GB free RAM for a liquidity demo; more (or swap) if you cannot
+  serialize proves.
 - A wedged `proof-server` between attempts surfaces client-side as
   `AbortError` or `socket hang up` — restart it and retry; these are not
   circuit errors.
@@ -89,6 +92,9 @@ something that actually bit us, with the fix that stuck.
   `onchain-runtime-v3`, and `zkir-v2` publish without a `license` field
   (sources are Apache-2.0 in the Midnight monorepo). Worth reporting
   upstream; tracked in `docs/dependencies.md`.
-- **CI can run the circuit tests**: vitest proves with the in-process
-  testkit runtime — no proof server, no localnet, no network. Keep them in
-  CI; they caught real regressions cheaply.
+- **CI can run the circuit tests**: vitest *executes* the circuits with the
+  in-process testkit runtime — no proof server, no localnet, no network,
+  and **no proof generation**: it verifies asserts, math, and state
+  transitions. Keep them in CI; they caught real regressions cheaply.
+  Real proving is what the on-chain E2E runs (and `AMM_PROOF_URL` traffic)
+  exercise.

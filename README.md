@@ -489,10 +489,12 @@ reads; multi-pool via contract-per-pool registry; deploy-time faucet gate;
 remaining work is hardening against the `UNVERIFIED` markers, plus a
 preprod redeploy of the stale pool above.
 
-**Release checklist:** liquidity E2E on a ≥12 GB host (the circuit passes
-its tests; on-chain proving OOMs this class of box), preprod redeploy of
-the gated pool, CI first-run validation, optional `leaderboard-*` package
-renames. Engineering notes live in [`docs/learnings.md`](./docs/learnings.md).
+**Release checklist:** liquidity E2E — done (2026-10-15): `addLiquidity`
+and `removeLiquidity` both settled on-chain from this host via the FIFO
+prove queue at ≥4 GB free RAM (the ~76 MB single-prove peak OOMs the box
+below ~2.5 GB free); remaining: preprod redeploy of the gated pool, CI
+first-run validation, optional `leaderboard-*` package renames.
+Engineering notes live in [`docs/learnings.md`](./docs/learnings.md).
 
 **Housekeeping:** leaderboard template leftovers removed; npm package names
 still say `leaderboard-*` (rename tracked as an open decision); see
