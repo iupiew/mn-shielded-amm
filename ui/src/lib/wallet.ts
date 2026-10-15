@@ -6,13 +6,13 @@
  */
 
 import type { ContractAddress } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
-import type { BrowserAmm as BrowserAmmImpl, WalletInfo as WalletInfoImpl } from '@midnight-ntwrk/leaderboard-api/dist/api/src/amm/browser.js';
+import type { BrowserAmm as BrowserAmmImpl, WalletInfo as WalletInfoImpl } from 'mn-amm-api/dist/api/src/amm/browser.js';
 import { BLOCKFROST_PROJECT_ID, CONTRACT_ADDRESS, NETWORK_ID as CONFIG_NETWORK_ID, PROVER_URI } from './config';
 
 export type BrowserAmm = BrowserAmmImpl;
 export type WalletInfo = WalletInfoImpl;
 
-type BrowserAmmModule = typeof import('@midnight-ntwrk/leaderboard-api/dist/api/src/amm/browser.js');
+type BrowserAmmModule = typeof import('mn-amm-api/dist/api/src/amm/browser.js');
 
 export const NETWORK_ID = CONFIG_NETWORK_ID;
 export { CONTRACT_ADDRESS };
@@ -20,7 +20,7 @@ export { CONTRACT_ADDRESS };
 let modulePromise: Promise<BrowserAmmModule> | undefined;
 
 function loadModule(): Promise<BrowserAmmModule> {
-  modulePromise ??= import('@midnight-ntwrk/leaderboard-api/dist/api/src/amm/browser.js');
+  modulePromise ??= import('mn-amm-api/dist/api/src/amm/browser.js');
   return modulePromise;
 }
 

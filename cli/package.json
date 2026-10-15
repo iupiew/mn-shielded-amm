@@ -12,7 +12,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@midnight-ntwrk/leaderboard-api": "*"
+    "mn-amm-api": "*"
   },
   "devDependencies": {
     "@types/node": "24.19.1"

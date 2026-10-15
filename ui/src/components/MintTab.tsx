@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { PoolState } from '@midnight-ntwrk/leaderboard-api/dist/api/src/amm/types.js';
+import type { PoolState } from 'mn-amm-api/dist/api/src/amm/types.js';
 import { fmtBig, isValidAmount } from '../lib/format';
 import type { ActionContext, Refreshers } from '../lib/actions';
 import type { BrowserAmm } from '../lib/wallet';

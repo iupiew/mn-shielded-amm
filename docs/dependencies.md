@@ -28,7 +28,7 @@ All `@midnight-ntwrk/*` protocol/provider packages
 
 ### Workspace (1)
 
-`@midnight-ntwrk/leaderboard-api` (local package, inherits repo license).
+`mn-amm-api` (local package, inherits repo license).
 
 ### **Flag** — no license metadata in the published package (3)
 

@@ -172,7 +172,7 @@ async function parseContract(flags: Flags, defaultAddress?: string): Promise<str
   const poolName = flagStr(flags, 'pool');
   if (poolName) {
     try {
-      const { resolvePool } = await import('@midnight-ntwrk/leaderboard-api/dist/api/src/amm/registry.js');
+      const { resolvePool } = await import('mn-amm-api/dist/api/src/amm/registry.js');
       return resolvePool(poolName).contract;
     } catch (cause) {
       throw new UsageError(cause instanceof Error ? cause.message : String(cause));
@@ -231,12 +231,12 @@ async function main(): Promise<number> {
   }
 
   // Dynamic import: a missing build gets a clear message instead of a module stack.
-  let createNodeAmm: typeof import('@midnight-ntwrk/leaderboard-api/dist/api/src/amm/node.js').createNodeAmm;
-  let createPreprodAmm: typeof import('@midnight-ntwrk/leaderboard-api/dist/api/src/amm/preprod.js').createPreprodAmm;
+  let createNodeAmm: typeof import('mn-amm-api/dist/api/src/amm/node.js').createNodeAmm;
+  let createPreprodAmm: typeof import('mn-amm-api/dist/api/src/amm/preprod.js').createPreprodAmm;
   let DEFAULT_PREPROD_CONTRACT: string;
   try {
-    ({ createNodeAmm } = await import('@midnight-ntwrk/leaderboard-api/dist/api/src/amm/node.js'));
-    ({ createPreprodAmm, DEFAULT_PREPROD_CONTRACT } = await import('@midnight-ntwrk/leaderboard-api/dist/api/src/amm/preprod.js'));
+    ({ createNodeAmm } = await import('mn-amm-api/dist/api/src/amm/node.js'));
+    ({ createPreprodAmm, DEFAULT_PREPROD_CONTRACT } = await import('mn-amm-api/dist/api/src/amm/preprod.js'));
   } catch (cause) {
     throw new Error(`cannot load api build (run: npm run build -w api): ${cause instanceof Error ? cause.message : String(cause)}`);
   }
@@ -268,7 +268,7 @@ async function main(): Promise<number> {
 
   switch (command) {
     case 'pools': {
-      const registry = await import('@midnight-ntwrk/leaderboard-api/dist/api/src/amm/registry.js');
+      const registry = await import('mn-amm-api/dist/api/src/amm/registry.js');
       const sub = positional[1];
       switch (sub) {
         case 'list': {
@@ -548,7 +548,7 @@ async function main(): Promise<number> {
         // coins and then fail the circuit assert ("AMM: pool already seeded").
         const state = await api.poolState();
         if (state.seeded) {
-          const { AmmError } = await import('@midnight-ntwrk/leaderboard-api/dist/api/src/amm/types.js');
+          const { AmmError } = await import('mn-amm-api/dist/api/src/amm/types.js');
           throw new AmmError('ALREADY_SEEDED', 'pool already seeded');
         }
         const paused = await api.isPaused();

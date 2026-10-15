@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@midnight-ntwrk/dapp-connector-api": "4.0.1",
-    "@midnight-ntwrk/leaderboard-api": "*",
+    "mn-amm-api": "*",
     "@midnight-ntwrk/midnight-js-protocol": "4.1.1",
     "buffer": "^6.0.3",
     "react": "^19.0.0",

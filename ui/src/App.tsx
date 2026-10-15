@@ -13,7 +13,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ContractAddress } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
-import type { PoolBalance, PoolState } from '@midnight-ntwrk/leaderboard-api/dist/api/src/amm/types.js';
+import type { PoolBalance, PoolState } from 'mn-amm-api/dist/api/src/amm/types.js';
 import type { ActionContext, ActionResult, LogEntry, Refreshers, RunAction } from './lib/actions';
 import { toAppError, friendlyMessage, type AppError } from './lib/errors';
 import { copyText, truncHex } from './lib/format';

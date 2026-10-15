@@ -79,8 +79,8 @@ mn-amm/
 ```
 
 **Template legacy:** the starter leaderboard contract and its exports have
-been removed; npm package names still say `leaderboard-*` (rename tracked as
-an open decision).
+been removed, and all workspaces now use `mn-amm-*` package names (renamed
+2026-10-15; the template history remains in git).
 
 ---
 
@@ -492,13 +492,13 @@ preprod redeploy of the stale pool above.
 **Release checklist:** liquidity E2E — done (2026-10-15): `addLiquidity`
 and `removeLiquidity` both settled on-chain from this host via the FIFO
 prove queue at ≥4 GB free RAM (the ~76 MB single-prove peak OOMs the box
-below ~2.5 GB free); remaining: preprod redeploy of the gated pool, CI
-first-run validation, optional `leaderboard-*` package renames.
-Engineering notes live in [`docs/learnings.md`](./docs/learnings.md).
+below ~2.5 GB free); CI first-run passed (2026-10-15). Remaining: preprod
+redeploy of the gated pool. Engineering notes live in
+[`docs/learnings.md`](./docs/learnings.md).
 
-**Housekeeping:** leaderboard template leftovers removed; npm package names
-still say `leaderboard-*` (rename tracked as an open decision); see
-`docs/patches.md` for the wallet-sdk-shielded note.
+**Housekeeping:** leaderboard template leftovers removed and package names
+renamed to `mn-amm-*`; see `docs/patches.md` for the wallet-sdk-shielded
+note.
 
 ---
 

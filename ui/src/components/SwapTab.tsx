@@ -5,7 +5,7 @@ import type {
   Quote,
   SwapSide,
   WalletCoin,
-} from '@midnight-ntwrk/leaderboard-api/dist/api/src/amm/types.js';
+} from 'mn-amm-api/dist/api/src/amm/types.js';
 import { friendlyMessage } from '../lib/errors';
 import { fmtBig, isValidAmount } from '../lib/format';
 import type { ActionContext, Refreshers } from '../lib/actions';

@@ -3,7 +3,7 @@
  * raw message kept verbatim (revealed via the "Show details" toggle and always
  * recorded in the action log — nothing is swallowed).
  */
-import { AmmError } from '@midnight-ntwrk/leaderboard-api/dist/api/src/amm/types.js';
+import { AmmError } from 'mn-amm-api/dist/api/src/amm/types.js';
 import { friendlyWalletError } from './wallet';
 
 export interface AppError {

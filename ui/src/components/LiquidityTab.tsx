@@ -4,7 +4,7 @@ import type {
   PoolBalance,
   PoolState,
   RemoveLiquidityQuote,
-} from '@midnight-ntwrk/leaderboard-api/dist/api/src/amm/types.js';
+} from 'mn-amm-api/dist/api/src/amm/types.js';
 import { friendlyMessage } from '../lib/errors';
 import { fmtBig, fmtShare, isValidAmount } from '../lib/format';
 import type { ActionContext, Refreshers } from '../lib/actions';

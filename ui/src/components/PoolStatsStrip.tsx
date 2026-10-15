@@ -1,4 +1,4 @@
-import type { PoolState } from '@midnight-ntwrk/leaderboard-api/dist/api/src/amm/types.js';
+import type { PoolState } from 'mn-amm-api/dist/api/src/amm/types.js';
 import { fmtBig, fmtPrice } from '../lib/format';
 
 interface PoolStatsStripProps {

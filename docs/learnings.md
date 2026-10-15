@@ -82,8 +82,9 @@ something that actually bit us, with the fix that stuck.
 - **Template leftovers rot**: the starter leaderboard contract shipped
   witnesses/types/exports/tests that the pool code kept using under
   leaderboard names. Removing them cleanly means renaming the private-state
-  helpers first (`createPoolPrivateState`), then deleting; npm package names
-  still say `leaderboard-*` (rename = open decision).
+  helpers first (`createPoolPrivateState`), then deleting; the last
+  `leaderboard-*` package names were retired in the 2026-10-15 rename
+  (`mn-amm-contract`, `mn-amm-api`).
 - **Secrets scanning**: gitleaks (git + working tree) plus a history-wide
   BIP39-phrase scan across all blob paths × recent revs. Known local secrets
   (`.spike/*.json`, `.env`) are all gitignored; nothing leaked into history,

@@ -7,7 +7,7 @@ import {
   removeLocalPool as removeLocalEntry,
   saveLocalPools as saveStoredPools,
   type LocalPoolEntry,
-} from '@midnight-ntwrk/leaderboard-api/dist/api/src/amm/local-registry.js';
+} from 'mn-amm-api/dist/api/src/amm/local-registry.js';
 
 export type { LocalPoolEntry };
 

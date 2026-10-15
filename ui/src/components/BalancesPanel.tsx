@@ -1,4 +1,4 @@
-import type { PoolBalance, PoolState } from '@midnight-ntwrk/leaderboard-api/dist/api/src/amm/types.js';
+import type { PoolBalance, PoolState } from 'mn-amm-api/dist/api/src/amm/types.js';
 import { fmtBig, truncHex } from '../lib/format';
 
 interface BalancesPanelProps {
