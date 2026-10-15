@@ -28,6 +28,8 @@ jobs:
         run: npm run build -w ui
       - name: Api unit tests
         run: npm test -w api
+      - name: CLI schema parity tests
+        run: npm test -w mn-amm-cli
       # Contract circuit tests use local proving only — no proof server,
       # no localnet, no network.
       - name: Contract circuit tests
