@@ -23,7 +23,7 @@ const VALUE_FLAGS = new Set([
   'initial-lp',
   'salt',
 ]);
-const BOOL_FLAGS = new Set(['execute', 'json', 'no-sync', 'mint', 'help']);
+const BOOL_FLAGS = new Set(['execute', 'json', 'no-sync', 'mint', 'faucet-open', 'help']);
 
 class UsageError extends Error {}
 
@@ -39,14 +39,14 @@ Commands:
   swap <side> <amount>           quote + coin plan; add --execute to submit
   faucet [--amount-a N] [--amount-b N]
                                  mint devnet coins; add --execute to submit
-   seed --mint [--amount-a N --amount-b N]
+  seed --mint [--amount-a N --amount-b N]
                                   faucet then seed the pool (mints initial LP
                                   supply, default floor(sqrt(a*b))); --execute
                                   to submit
-   pause | unpause                admin pause control; add --execute to submit
-   add-liquidity <amountA> <amountB>
+  pause | unpause                 admin pause control; add --execute to submit
+  add-liquidity <amountA> <amountB>
                                   LP deposit; add --execute to submit
-   remove-liquidity <shares>      LP withdrawal; add --execute to submit
+  remove-liquidity <shares>       LP withdrawal; add --execute to submit
   pools list                      list named pools from the registry file
   pools add <name> <contract>     register a pool (optional --network-id)
   pools deploy <name>             deploy a new pool contract and register it;
@@ -345,7 +345,7 @@ async function main(): Promise<number> {
             return 0;
           }
 
-          const serveUrl = process.env.AMN_SERVE_URL ?? process.env.MN_SERVE_URL ?? 'ws://127.0.0.1:9932';
+          const serveUrl = process.env.AMM_SERVE_URL ?? process.env.MN_SERVE_URL ?? 'ws://127.0.0.1:9932';
           const pkHex: string = await new Promise((resolvePromise, rejectPromise) => {
             const ws = new WebSocket(serveUrl);
             const timer = setTimeout(() => {
