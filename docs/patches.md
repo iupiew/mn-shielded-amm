@@ -3,13 +3,13 @@
 Everything this repo does differently from stock npm packages — exactly one
 real override, plus one claim that needed correcting.
 
-## `smoldot` → `@aspect-build/empty` (active override)
+## `smoldot` → `empty-npm-package` (active override)
 
 Root `package.json`:
 
 ```json
 "overrides": {
-  "smoldot": "npm:@aspect-build/empty@0.0.0"
+  "smoldot": "npm:empty-npm-package@1.0.0"
 }
 ```
 
@@ -18,8 +18,19 @@ Root `package.json`:
 project runs a light client: the wallet lives in the Midnight browser
 extension (the dApp-connector API in the UI is only the request surface), and
 the Node-side tools talk to preprod via Blockfrost HTTP/WS. The override
-replaces smoldot with a zero-byte stub package (`@aspect-build/empty`) so
-installs and bundles never carry the WASM light-client.
+replaces smoldot with a zero-byte stub package so installs and bundles never
+carry the WASM light-client.
+
+**Provenance of the stub target** (corrected 2026-10-15): the override block
+as inherited from Midnight's official leaderboard tutorial pointed at
+`npm:@aspect-build/empty@0.0.0` — that package **no longer exists on npm**
+(packument 404; the forge-inspector project migrated the same override to a
+different stub in a security-review PR). The tutorial's lock predates its own
+override, so the dead target had never been exercised by an install here
+either: the first `npm ci` after a local `node_modules` wipe failed outright.
+The target now follows Midnight's newer ZK Loan tutorial, which stubs
+smoldot with `empty-npm-package@1.0.0` (328-byte package,
+integrity-locked).
 
 Effect on behavior: none observed — no code path instantiates smoldot.
 Cost if a future dependency actually needs a light client: it will fail
