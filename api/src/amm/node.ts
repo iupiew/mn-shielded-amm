@@ -34,6 +34,12 @@ import { createFilePolicyGuard } from '../policy/file-guard.js';
 
 export { shieldedSyncRequired, syncWalletCache } from './wallet-cache.js';
 
+/**
+ * Default localnet serve. Override per call via `options.serveUrl`, or
+ * per environment via `AMM_SERVE_URL` — the localnet owner/agent split points
+ * the agent at its own serve (e.g. ws://127.0.0.1:9934, wallet mn-amm-agent)
+ * while owner commands keep the default :9932 (wallet devnet-main).
+ */
 const DEFAULT_SERVE_URL = 'ws://127.0.0.1:9932';
 const DEFAULT_INDEXER_URL = 'http://localhost:8088/api/v4/graphql';
 const DEFAULT_INDEXER_WS_URL = 'ws://localhost:8088/api/v4/graphql/ws';
@@ -95,7 +101,7 @@ export async function createNodeAmm(options: NodeAmmOptions): Promise<NodeAmm> {
   const networkId = options.networkId ?? 'undeployed';
   setNetworkId(networkId);
 
-  const wallet = options.wallet ?? DEFAULT_WALLET;
+  const wallet = options.wallet ?? process.env.AMM_WALLET ?? DEFAULT_WALLET;
   const managedDir = resolve(options.managedDir ?? DEFAULT_MANAGED_DIR);
   const storeSuffix = options.storeSuffix ?? (process.env.PSSUFFIX ? `_${process.env.PSSUFFIX}` : '');
   const privateStateId = poolPrivateStateKey + storeSuffix;

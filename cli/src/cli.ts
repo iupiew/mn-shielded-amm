@@ -62,8 +62,9 @@ Options:
   --pool <name>                  resolve a registered pool name from the
                                  registry (pools.json / AMM_POOLS_FILE);
                                  overridden by --contract
-  --wallet <name>                wallet name (localnet: devnet-main; preprod:
-                                 coin-cache wallet, default: mn-amm-agent)
+  --wallet <name>                wallet name (default: AMM_WALLET env, else
+                                 localnet devnet-main / preprod coin-cache
+                                 wallet mn-amm-agent)
   --network-id <id>              undeployed (localnet, default) | preprod (alpha:
                                  agent seed wallet, ProofStation proving, fees
                                  sponsored, live coins from the midnight balance
@@ -259,7 +260,7 @@ async function main(): Promise<number> {
     }
     const node = await createNodeAmm({
       contractAddress: contract,
-      wallet: flagStr(flags, 'wallet') ?? 'devnet-main',
+      wallet: flagStr(flags, 'wallet') ?? process.env.AMM_WALLET ?? 'devnet-main',
       networkId,
       syncWallet: !flags.has('no-sync'),
     });

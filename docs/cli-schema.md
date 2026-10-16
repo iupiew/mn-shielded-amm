@@ -40,7 +40,7 @@ the deployed default pool. `pools` subcommands never need a contract.
 | --- | --- | --- | --- | --- |
 | `--contract <hex>` | value | all except `pools` | `AMM_CONTRACT` env | 64 hex chars |
 | `--pool <name>` | value | all except `pools` | — | Resolved via the registry file; overridden by `--contract` |
-| `--wallet <name>` | value | all except `pools`; `pools deploy` (localnet) | localnet `devnet-main`; preprod `AMM_WALLET` env or `mn-amm-agent` | |
+| `--wallet <name>` | value | all except `pools`; `pools deploy` (localnet) | `AMM_WALLET` env, else localnet `devnet-main` / preprod `mn-amm-agent` | |
 | `--network-id <id>` | value | all | `AMM_NETWORK_ID` env or `undeployed` | `undeployed` (localnet) \| `preprod` |
 | `--slippage-bps <n>` | value | `quote`, `swap`, `add-liquidity`, `remove-liquidity`, `seed` | `0` | Integer 0–10000; bounds the `min*` fields of quotes |
 | `--amount-a <n>` | value | `faucet`, `seed` | `1000000` | |
@@ -65,7 +65,7 @@ Unknown flags are rejected by the parser (`exit 2`) before any command runs.
 | `AMM_POOLS_FILE` | CLI (registry) | `<cwd>/pools.json` | Named-pool registry file location |
 | `AMM_SEED_PATH` | CLI / api | `.spike/agent-seed-export.json` | Agent seed export for preprod deploy and proving |
 | `AMM_SERVE_URL` | CLI / api | `ws://127.0.0.1:9932` (`ws://127.0.0.1:9933` preprod) | `mn serve` DApp-Connector WebSocket; `MN_SERVE_URL` accepted as a legacy fallback in `pools deploy` |
-| `AMM_WALLET` | api (preprod) | `mn-amm-agent` | Wallet name whose shielded coin cache funds preprod transactions |
+| `AMM_WALLET` | CLI (localnet) / api (preprod) | localnet `devnet-main`; preprod `mn-amm-agent` | Wallet whose identity/cache the API connects with (pair with `AMM_SERVE_URL` for the agent role) |
 | `AMM_VAULT_PATH` | api (preprod) | `~/.mn-amm/preprod-vault.json` | Persistent file vault: records faucet coins, consumed on spends |
 | `AMM_PROOF_URL` | api (localnet) | `ws://127.0.0.1:6300` | Local proof-server RPC |
 | `AMM_PROOF_SERVER` | api (preprod) | ProofStation | Proving endpoint for preprod transactions |

@@ -208,6 +208,10 @@ A chain reset always destroys the deployed pool.
 
 ## CLI reference (`npx mn-amm` / `mn-amm`)
 
+Full machine contract — every command, flag, env var, JSON output key, and
+exit code — lives in [`docs/cli-schema.md`](docs/cli-schema.md), which is
+parity-tested against `cli/src/cli.ts` in CI.
+
 ```
 mn-amm <command> [options]
 
@@ -237,7 +241,7 @@ mn-amm <command> [options]
 | `--contract <hex>` | pool address — or `export AMM_CONTRACT=…`, or `--pool <name>` |
 | `--pool <name>` | registered pool name from `pools.json` (overridden by `--contract`) |
 | `--network-id <id>` | `undeployed` (localnet, default) · `preprod` |
-| `--wallet <name>` | default `devnet-main` |
+| `--wallet <name>` | `AMM_WALLET` env, else `devnet-main` (localnet) / `mn-amm-agent` (preprod) |
 | `--slippage-bps <n>` | 0–10000, default 0 |
 | `--salt <64-hex>` | `pools deploy`: instance salt (default: fresh random) |
 | `--faucet-open` | `pools deploy`: mint-enable the new pool (default: closed) |
@@ -294,6 +298,39 @@ to you as change in the same transaction. The **dry-run never fails** on a
 missing coin: it reports `spendableCoinAvailable` plus `availableValues` and
 exits 0. Only `--execute` raises exit code `3` (`INSUFFICIENT_COIN`), when no
 single coin covers `amountIn`.
+
+### Owner vs agent (localnet)
+
+The pool binds admin operations (pause/unpause) to the **deployer's** coin
+public key (`ownerId = sha256(pk‖pk)`), while trading runs under whichever
+wallet the connected `mn serve` exposes. On localnet the two roles are
+separate identities:
+
+| Role | Serve | Wallet |
+|---|---|---|
+| Owner — deploys, pauses | `mn serve --port 9932` (default `AMM_SERVE_URL`) | `devnet-main` |
+| Agent — trades | `mn serve --port 9934` | `mn-amm-agent` |
+
+`AMM_SERVE_URL` selects the identity and `AMM_WALLET` (or `--wallet`) the
+coin cache; owner commands run without them and keep the defaults:
+
+```bash
+mn serve --port 9934 --wallet mn-amm-agent &      # agent identity
+export AMM_SERVE_URL=ws://127.0.0.1:9934
+export AMM_WALLET=mn-amm-agent
+
+npx mn-amm faucet --execute --json                # airdrop to the agent wallet
+npx mn-amm swap AtoB 100000 --execute --json      # agent trade
+
+unset AMM_SERVE_URL AMM_WALLET                    # owner defaults (:9932)
+npx mn-amm pause --execute --json                 # owner pauses the pool
+```
+
+The guard rail is the contract, not the CLI: pause/unpause verify the owner
+witness in-circuit, so an agent-signed pause is rejected on-chain. Server-side
+spend limits for agent identities are the policy guard
+([`policy.example.json`](policy.example.json)) — violations fail with exit
+code `3` and `"code": "POLICY_DENIED"` before any transaction is built.
 
 ---
 
