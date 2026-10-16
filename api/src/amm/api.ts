@@ -56,6 +56,7 @@ import {
   randomBytes32,
 } from './types.js';
 import { getAmountOut, getAmountsOut, getLpOut, integerSqrt, minAmountOut } from './math.js';
+import type { PolicyAction, PolicyAmounts, PolicyGuard } from '../policy/index.js';
 
 const DEFAULT_FAUCET_AMOUNT = 1000000n;
 /**
@@ -84,6 +85,12 @@ export interface AmmConnectOptions {
   readonly privateStateId?: string;
   /** Source of the wallet's unspent shielded coins (used for balance + swap coin selection). */
   readonly coins: CoinSource;
+  /**
+   * Optional server-side policy guard (Phase 2): gates swap/faucet/addLiquidity/
+   * removeLiquidity. Omitted by the browser UI; constructed from the operator's
+   * policy file by the Node wirings (node.ts / preprod.ts).
+   */
+  readonly policy?: PolicyGuard;
   readonly logger?: Logger;
 }
 
@@ -211,6 +218,7 @@ export class AmmApi {
     public readonly deployedContract: DeployedPoolContract,
     private readonly providers: PoolProviders,
     private readonly coins: CoinSource,
+    private readonly policy: PolicyGuard | undefined,
     private readonly logger?: Logger,
   ) {
     this.contractAddress = deployedContract.deployTxData.public.contractAddress;
@@ -227,9 +235,31 @@ export class AmmApi {
       privateStateId: options.privateStateId ?? poolPrivateStateKey,
       initialPrivateState: options.initialPrivateState,
     });
-    const api = new AmmApi(deployedContract, options.providers, options.coins, options.logger);
+    const api = new AmmApi(deployedContract, options.providers, options.coins, options.policy, options.logger);
     await api.colors();
     return api;
+  }
+
+  /**
+   * Enforce the policy guard before submitting a gated action (throws
+   * AmmError('POLICY_DENIED')). No-op when no guard is configured.
+   */
+  private async enforcePolicy(action: PolicyAction, amounts: PolicyAmounts, spendColorHex: readonly string[] = []): Promise<void> {
+    if (this.policy) await this.policy.check(action, amounts, spendColorHex);
+  }
+
+  /**
+   * Record a settled gated action for rolling-window accounting. The
+   * transaction is already on-chain at this point, so persistence failures
+   * are logged and swallowed.
+   */
+  private async recordPolicy(action: PolicyAction, amount: bigint): Promise<void> {
+    if (!this.policy) return;
+    try {
+      await this.policy.record(action, amount);
+    } catch (cause) {
+      this.logger?.warn({ action, err: cause instanceof Error ? cause.message : String(cause) }, 'policy state record failed');
+    }
   }
 
   /** Pool token colors (derived locally from the contract address; cached). */
@@ -334,24 +364,18 @@ export class AmmApi {
   async swap(options: SwapOptions): Promise<SwapResult> {
     const { side, amountIn, slippageBps = 0 } = options;
     const quote = await this.quote(side, amountIn, slippageBps);
+    const spendColorHex = bytesToHex((await this.colors())[side === 'AtoB' ? 'colorA' : 'colorB']);
     const coin = options.coin
-      ? await this.validateProvidedCoin(
-          options.coin,
-          bytesToHex((await this.colors())[side === 'AtoB' ? 'colorA' : 'colorB']),
-          amountIn,
-          `${side === 'AtoB' ? 'A' : 'B'}-color`,
-        )
-      : await this.waitForColorCoin(
-          bytesToHex((await this.colors())[side === 'AtoB' ? 'colorA' : 'colorB']),
-          amountIn,
-          `${side === 'AtoB' ? 'A' : 'B'}-color`,
-        );
+      ? await this.validateProvidedCoin(options.coin, spendColorHex, amountIn, `${side === 'AtoB' ? 'A' : 'B'}-color`)
+      : await this.waitForColorCoin(spendColorHex, amountIn, `${side === 'AtoB' ? 'A' : 'B'}-color`);
+    await this.enforcePolicy('swap', { amountIn }, [spendColorHex]);
     const result = await (this.deployedContract as any).callTx.swap(
       { nonce: hexToBytes(coin.nonceHex), color: hexToBytes(coin.colorHex), value: coin.value },
       amountIn,
       quote.amountOut,
       quote.minAmountOut,
     );
+    await this.recordPolicy('swap', amountIn);
     this.logger?.info({ side, amountIn: amountIn.toString(), amountOut: quote.amountOut.toString(), txId: callTxId(result) }, 'swap settled');
     return { txId: callTxId(result), quote, coin };
   }
@@ -401,6 +425,7 @@ export class AmmApi {
   async faucet(options: FaucetOptions = {}): Promise<[PoolCoin, PoolCoin]> {
     const amountA = options.amountA ?? DEFAULT_FAUCET_AMOUNT;
     const amountB = options.amountB ?? DEFAULT_FAUCET_AMOUNT;
+    await this.enforcePolicy('faucet', { amountA, amountB });
     const result = await (this.deployedContract as any).callTx.faucet(
       amountA,
       amountB,
@@ -408,6 +433,7 @@ export class AmmApi {
       randomBytes32(),
     );
     const coins = callResult<[PoolCoin, PoolCoin]>(result);
+    await this.recordPolicy('faucet', amountA + amountB);
     this.logger?.info({ amountA: amountA.toString(), amountB: amountB.toString() }, 'faucet minted');
     return coins;
   }
@@ -474,6 +500,7 @@ export class AmmApi {
       this.waitForColorCoin(bytesToHex(colors.colorA), amountA, 'A-color'),
       this.waitForColorCoin(bytesToHex(colors.colorB), amountB, 'B-color'),
     ]);
+    await this.enforcePolicy('addLiquidity', { amountA, amountB }, [bytesToHex(colors.colorA), bytesToHex(colors.colorB)]);
     const result = await (this.deployedContract as any).callTx.addLiquidity(
       { nonce: hexToBytes(coinA.nonceHex), color: hexToBytes(coinA.colorHex), value: coinA.value },
       amountA,
@@ -484,6 +511,7 @@ export class AmmApi {
       randomBytes32(),
     );
     const lpCoin = callResult<PoolCoin>(result);
+    await this.recordPolicy('addLiquidity', amountA + amountB);
     this.logger?.info(
       { amountA: amountA.toString(), amountB: amountB.toString(), lpOut: quote.lpOut.toString(), txId: callTxId(result) },
       'addLiquidity settled',
@@ -522,6 +550,7 @@ export class AmmApi {
     const quote = await this.quoteRemoveLiquidity(lpAmount, slippageBps);
     const colors = await this.colors();
     const lpCoin = await this.waitForColorCoin(bytesToHex(colors.colorLp), lpAmount, 'LP');
+    await this.enforcePolicy('removeLiquidity', { lpAmount }, [bytesToHex(colors.colorLp)]);
     const result = await (this.deployedContract as any).callTx.removeLiquidity(
       { nonce: hexToBytes(lpCoin.nonceHex), color: hexToBytes(lpCoin.colorHex), value: lpCoin.value },
       lpAmount,
@@ -533,6 +562,7 @@ export class AmmApi {
       randomBytes32(),
     );
     const coins = callResult<[PoolCoin, PoolCoin]>(result);
+    await this.recordPolicy('removeLiquidity', lpAmount);
     this.logger?.info(
       { lpAmount: lpAmount.toString(), aOut: quote.aOut.toString(), bOut: quote.bOut.toString(), txId: callTxId(result) },
       'removeLiquidity settled',

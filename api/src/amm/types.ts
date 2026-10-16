@@ -205,6 +205,7 @@ export type AmmErrorCode =
   | 'BAD_SLIPPAGE'
   | 'INSUFFICIENT_COIN'
   | 'PAUSED'
+  | 'POLICY_DENIED'
   | 'NOT_IMPLEMENTED';
 
 /**

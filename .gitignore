@@ -81,3 +81,7 @@ ui/public/contract/
 .spike/pools.json
 pools.json
 .spike/
+
+# Policy guard runtime config/state (example committed as policy.example.json)
+/policy.json
+/policy-state.json

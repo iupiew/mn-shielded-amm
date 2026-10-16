@@ -60,6 +60,8 @@ import { ServeRpc } from './serve-rpc.js';
 import { readWalletCoins, shieldedSyncRequired } from './wallet-cache.js';
 import { createPersistentVault, type Vault, type VaultStorage } from './vault.js';
 import { type CoinSource, type PoolProviders, hexToBytes, poolPrivateStateKey } from './types.js';
+import type { PolicyGuard } from '../policy/index.js';
+import { createFilePolicyGuard } from '../policy/file-guard.js';
 
 export const PREPROD_NETWORK_ID = 'preprod';
 // Preprod indexer/RPC moved to Blockfrost on 2026-10-09 (Midnight-hosted
@@ -136,6 +138,8 @@ export interface PreprodAmmOptions {
   readonly serveUrl?: string;
   /** `midnight-wallet-cli` wallet name whose shielded cache lists live coins (must share the agent seed). Default AMM_WALLET env or 'mn-amm-agent'. */
   readonly wallet?: string;
+  /** Policy guard for agent actions. Default: built from AMM_POLICY_FILE / policy.json (no file = permissive). */
+  readonly policy?: PolicyGuard;
   readonly logger?: Logger;
 }
 
@@ -641,6 +645,7 @@ export async function createPreprodAmm(options: PreprodAmmOptions = {}): Promise
     initialPrivateState,
     privateStateId: poolPrivateStateKey,
     coins,
+    policy: options.policy ?? createFilePolicyGuard(),
     logger: options.logger,
   });
 

@@ -1,0 +1,20 @@
+{
+  "halted": false,
+  "caps": {
+    "swapIn": "250000",
+    "faucetA": "1000000",
+    "faucetB": "1000000",
+    "addA": "250000",
+    "addB": "250000",
+    "removeLp": "250000"
+  },
+  "windowSeconds": 3600,
+  "maxWindowActions": 50,
+  "maxWindowAmount": {
+    "swap": "2500000",
+    "faucet": "5000000",
+    "addLiquidity": "1000000",
+    "removeLiquidity": "1000000"
+  },
+  "statePath": "policy-state.json"
+}

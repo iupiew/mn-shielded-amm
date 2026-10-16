@@ -29,6 +29,8 @@ import { AmmApi } from './api.js';
 import { ServeRpc } from './serve-rpc.js';
 import { DEFAULT_WALLET, readWalletCoins, shieldedSyncRequired, syncWalletCache } from './wallet-cache.js';
 import { type CoinSource, type PoolProviders, poolPrivateStateKey } from './types.js';
+import type { PolicyGuard } from '../policy/index.js';
+import { createFilePolicyGuard } from '../policy/file-guard.js';
 
 export { shieldedSyncRequired, syncWalletCache } from './wallet-cache.js';
 
@@ -57,6 +59,8 @@ export interface NodeAmmOptions {
   readonly syncWallet?: boolean;
   /** Suffix isolating this instance's private-state store (also honored via PSSUFFIX). */
   readonly storeSuffix?: string;
+  /** Policy guard for agent actions. Default: built from AMM_POLICY_FILE / policy.json (no file = permissive). */
+  readonly policy?: PolicyGuard;
   readonly logger?: Logger;
 }
 
@@ -152,6 +156,7 @@ export async function createNodeAmm(options: NodeAmmOptions): Promise<NodeAmm> {
       initialPrivateState,
       privateStateId,
       coins: coinSource,
+      policy: options.policy ?? createFilePolicyGuard(),
       logger: options.logger,
     });
     return { api, close: () => rpc.close() };
