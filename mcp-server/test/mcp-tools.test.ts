@@ -213,7 +213,8 @@ describe('failures', () => {
     delete process.env.AMM_NETWORK_ID;
     try {
       // Real default connect: resolution fails before any connection attempt.
-      const { tools } = createMcpServer({});
+      // Audit sink silenced so tests never write mcp-audit.jsonl into the workspace.
+      const { tools } = createMcpServer({ audit: () => {} });
       const { ok, payload } = await callTool(tools, 'amm_pool_state', {});
       expect(ok).toBe(false);
       expect(payload.error.code).toBe('USAGE');

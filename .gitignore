@@ -86,5 +86,5 @@ pools.json
 /policy.json
 /policy-state.json
 
-# MCP server tool-call audit log (JSONL)
-/mcp-audit.jsonl
+# MCP server tool-call audit log (JSONL; written at process cwd)
+mcp-audit.jsonl
