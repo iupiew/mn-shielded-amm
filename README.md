@@ -16,7 +16,8 @@ a thin **CLI**, and a **React dashboard**.
 | Live quotes (0.3% fee, slippage tolerance in bps) | ✅ |
 | Dry-run-first safety (`--execute` to submit, `--json` output) | ✅ |
 | Add/remove liquidity (LP share circuits) | ✅ verified on local devnet |
-| Agent support (MCP server, policies, strategies) | 🔜 phase 2 |
+| Agent support: policy guard, owner/agent split, MCP server (`mn-amm-mcp`) | ✅ |
+| Strategy interface + runner (DCA, rebalance) | 🔜 phase 2 |
 
 > **Local devnet by default; preprod for real runs.** The quickstart below runs
 > against an ephemeral local chain — the chain, the deployed pool, and (on
@@ -363,6 +364,62 @@ with `VITE_MN_CONTRACT_ADDRESS`.
 
 ---
 
+## MCP server (`mn-amm-mcp`)
+
+An MCP (Model Context Protocol) server exposing the **agent-safe** half of the
+stack to MCP clients (opencode, Claude Code, …) over **stdio**. It uses the
+same env family as the CLI (`AMM_NETWORK_ID`, `AMM_CONTRACT` or registry pools,
+`AMM_SERVE_URL`, `AMM_WALLET`, `AMM_POLICY_*`) and is intended to run under the
+agent identity:
+
+| Tool | Kind | Notes |
+|---|---|---|
+| `amm_pool_state` | read | reserves, colors, LP supply, seeded + paused |
+| `amm_quote` | read | price a swap at current reserves |
+| `amm_balance` | read | wallet coins split by pool color |
+| `amm_policy_status` | read | effective policy: halt, caps, allowlist, window sums |
+| `amm_swap` | write | **dry-run by default**; `execute:true` submits on-chain |
+| `amm_add_liquidity` | write | dry-run preview (LP quote + coin check) |
+| `amm_remove_liquidity` | write | dry-run preview (payout quote + LP check) |
+| `amm_faucet` | write | mint preview; `execute:true` submits |
+
+Owner operations (deploy, seed, pause, unpause) are **not exposed** — the agent
+wallet never receives them (the contract's owner witness is the guard rail).
+Every write passes the server-side policy guard (`policy.json`): a violation
+returns `{"error": {"code": "POLICY_DENIED", …}}` before any transaction is
+built. Each tool call appends one JSONL audit line (`AMM_MCP_AUDIT_FILE`,
+default `<cwd>/mcp-audit.jsonl`).
+
+```bash
+# stdio server, agent role (both env vars optional):
+AMM_SERVE_URL=ws://127.0.0.1:9934 AMM_WALLET=mn-amm-agent npx mn-amm-mcp
+```
+
+Example client registration (opencode `opencode.json`):
+
+```json
+{
+  "mcp": {
+    "amm": {
+      "type": "local",
+      "command": ["npx", "mn-amm-mcp"],
+      "environment": {
+        "AMM_SERVE_URL": "ws://127.0.0.1:9934",
+        "AMM_WALLET": "mn-amm-agent"
+      },
+      "enabled": true
+    }
+  }
+}
+```
+
+Verified: stdio handshake + `tools/list` (8 tools) against the real server,
+and the dry-run/policy/error paths in `mcp-server/test` (16 tests, in CI). A
+live localnet E2E through an MCP client runs with the deferred slice-2/3
+localnet validation.
+
+---
+
 ## Preprod
 
 Redeploy is **mandatory** after any contract change — the toolchain
@@ -514,12 +571,14 @@ npm run dev -w ui            # dashboard on :3000
 
 ## Roadmap
 
-**Phase 2 — agent support** (next):
-CLI schema doc (`docs/cli-schema.md`) → policy guard (spend limits, token
-allowlist, persisted counters) → isolated agent wallet → MCP server mirroring
-the CLI with server-side policy → strategy interface + runner (DCA,
-rebalance; simulation mode, idempotent execution, kill switch) → strategy
-dashboard in the UI → live demo (two agents, one policy-blocked trade, halt).
+**Phase 2 — agent support** (in progress): CLI schema doc (`docs/cli-schema.md`,
+parity-tested) → policy guard (spend limits, token allowlist, persisted
+counters) → owner/agent identity split → MCP server (`mn-amm-mcp`, dry-run
+first, policy-gated, JSONL-audited) — all done → strategy interface + runner
+(DCA, rebalance; simulation mode, idempotent execution, kill switch) →
+strategy dashboard in the UI → live demo (two agents, one policy-blocked
+trade, halt). Deferred: localnet E2E for the policy/agent/MCP stack (needs
+more free RAM for proving).
 
 **Contract:** LP share circuits live; view circuits replaced by ledger
 reads; multi-pool via contract-per-pool registry; deploy-time faucet gate;

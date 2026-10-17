@@ -17,6 +17,7 @@ import {
   type WindowEntry,
   createPolicyGuard,
   parsePolicyConfig,
+  pruneWindow,
 } from './index.js';
 
 /** Config path: AMM_POLICY_FILE env, else <cwd>/policy.json. */
@@ -90,4 +91,67 @@ export function createFilePolicyGuard(configPath: string = policyConfigPath()): 
     async () => readEntries(statePath),
     async (entries) => writeEntries(statePath, entries),
   );
+}
+
+/** JSON-friendly snapshot of the effective policy (amounts as decimal strings). */
+export interface PolicyStatus {
+  readonly enforced: boolean;
+  readonly configPath: string;
+  readonly halted: boolean;
+  readonly caps: Record<string, string | undefined>;
+  readonly allowedColors?: readonly string[];
+  readonly window?: {
+    readonly seconds: number;
+    readonly maxActions?: number;
+    readonly maxAmount?: Record<string, string | undefined>;
+  };
+  readonly statePath?: string;
+  /** Window entries within the configured window (empty when no window). */
+  readonly activeWindow?: {
+    readonly entryCount: number;
+    /** Summed recorded size per action inside the window. */
+    readonly sums: Record<string, string>;
+  };
+}
+
+/** Read-only policy snapshot for operators/agents (e.g. MCP `amm_policy_status`). */
+export function policyStatus(configPath: string = policyConfigPath()): PolicyStatus {
+  const config = loadPolicyConfig(configPath);
+  if (!config) {
+    return { enforced: false, configPath, halted: false, caps: {} };
+  }
+  const statePath = policyStatePath(config);
+  const entries = pruneWindow(readEntries(statePath), config.windowSeconds, Date.now());
+  const sums: Record<string, string> = {};
+  for (const entry of entries) {
+    sums[entry.action] = (BigInt(sums[entry.action] ?? '0') + entry.amount).toString();
+  }
+  return {
+    enforced: true,
+    configPath,
+    halted: config.halted,
+    caps: {
+      swapIn: config.caps.swapIn?.toString(),
+      faucetA: config.caps.faucetA?.toString(),
+      faucetB: config.caps.faucetB?.toString(),
+      addA: config.caps.addA?.toString(),
+      addB: config.caps.addB?.toString(),
+      removeLp: config.caps.removeLp?.toString(),
+    },
+    allowedColors: config.allowedColors,
+    window:
+      config.windowSeconds === undefined
+        ? undefined
+        : {
+            seconds: config.windowSeconds,
+            maxActions: config.maxWindowActions,
+            maxAmount: config.maxWindowAmount
+              ? Object.fromEntries(
+                  Object.entries(config.maxWindowAmount).map(([action, amount]) => [action, amount?.toString()]),
+                )
+              : undefined,
+          },
+    statePath,
+    activeWindow: { entryCount: entries.length, sums },
+  };
 }

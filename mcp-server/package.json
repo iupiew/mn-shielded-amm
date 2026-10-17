@@ -1,0 +1,24 @@
+{
+  "name": "mn-amm-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "MCP server (stdio) exposing agent-safe AMM tools over mn-amm-api; policy-guarded, JSONL-audited, dry-run by default",
+  "license": "Apache-2.0",
+  "bin": {
+    "mn-amm-mcp": "src/main.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "2.3.1",
+    "mn-amm-api": "*",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.1",
+    "vitest": "4.1.11"
+  }
+}

@@ -85,3 +85,6 @@ pools.json
 # Policy guard runtime config/state (example committed as policy.example.json)
 /policy.json
 /policy-state.json
+
+# MCP server tool-call audit log (JSONL)
+/mcp-audit.jsonl

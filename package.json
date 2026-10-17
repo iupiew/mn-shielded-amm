@@ -7,7 +7,8 @@
     "contract",
     "api",
     "ui",
-    "cli"
+    "cli",
+    "mcp-server"
   ],
   "scripts": {
     "compile": "cd contract && npm run compile:pool",

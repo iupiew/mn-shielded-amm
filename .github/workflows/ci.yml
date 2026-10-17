@@ -19,17 +19,20 @@ jobs:
         run: npm ci
       - name: Build contract + api (tsc)
         run: npm run build
-      - name: Typecheck api / ui / cli
+      - name: Typecheck api / ui / cli / mcp
         run: |
           npm run typecheck -w api
           npm run typecheck -w ui
           npm run typecheck -w mn-amm-cli
+          npm run typecheck -w mn-amm-mcp
       - name: Build UI (tsc + vite)
         run: npm run build -w ui
       - name: Api unit tests
         run: npm test -w api
       - name: CLI schema parity tests
         run: npm test -w mn-amm-cli
+      - name: MCP server tests
+        run: npm test -w mn-amm-mcp
       # Contract circuit tests use local proving only — no proof server,
       # no localnet, no network.
       - name: Contract circuit tests
